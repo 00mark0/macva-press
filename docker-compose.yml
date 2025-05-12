@@ -1,0 +1,49 @@
+services:
+  mp-app:
+    build:
+      target: dev  # explicitly build the dev stage
+    container_name: macva-press
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    env_file:
+      - .env
+    volumes:
+      - .:/app  # Mount project directory for live editing
+    tty: true
+    depends_on:
+      - mp-db
+
+  mp-db:
+    image: ${DB_DRIVER}:latest
+    container_name: macva-press-db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  
+  mp-redis:
+    image: redis:latest
+    container_name: macva-press-redis
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server 
+      --maxmemory 100mb 
+      --maxmemory-policy allkeys-lru 
+      --activedefrag yes
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+
+volumes:
+  postgres_data:
+  redis_data:
+
+# docker compose -f docker-compose.yml up --build -d
+

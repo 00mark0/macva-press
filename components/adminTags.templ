@@ -1,0 +1,106 @@
+package components
+
+import (
+	"fmt"
+	"github.com/00mark0/macva-press/db/services"
+)
+
+templ TagsList(nextLimit int, tags []db.Tag) {
+	if len(tags) > 0 {
+		<div class="space-y-4">
+			<div class="overflow-x-auto">
+				<table class="min-w-full">
+					<thead class="bg-gray-50 dark:bg-gray-700">
+						<tr>
+							<th
+								class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+							>
+								Ime
+							</th>
+							<th
+								class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+							>
+								Akcije
+							</th>
+						</tr>
+					</thead>
+					<tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+						for _, v := range tags {
+							<tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+								<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+									<p class="w-64 truncate">{ v.TagName }</p>
+								</td>
+								<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+									<button
+										hx-delete={ "/api/admin/tags/remove/" + fmt.Sprint(v.TagID) }
+										hx-trigger="click"
+										hx-swap="none"
+										onclick="this.parentElement.parentElement.classList.add('hidden')"
+										class="cursor-pointer text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+									>Obriši</button>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+			if len(tags) == nextLimit {
+				<div class="text-center">
+					<button
+						hx-trigger="click"
+						hx-get={ "/api/admin/tags?limit=" + fmt.Sprintf("%d", nextLimit) }
+						hx-target="#admin-tags-list"
+						hx-swap="innerHTML"
+						class="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
+					>
+						Učitaj više
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-4 w-4 ml-2"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+						</svg>
+					</button>
+				</div>
+			}
+		</div>
+	} else {
+		<div class="flex flex-col items-center justify-center py-10 px-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				class="h-16 w-16 text-gray-400 dark:text-gray-500 mb-4"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+				></path>
+			</svg>
+			<h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">Nema tagova</h3>
+			<p class="text-sm text-gray-500 dark:text-gray-400">Trenutno nema tagova za prikaz.</p>
+		</div>
+	}
+}
+
+templ TagsInArticleDetes(tags []db.Tag) {
+	<div
+		class="flex flex-wrap gap-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 min-h-[15px]"
+	>
+		if len(tags) > 0 {
+			for _, v := range tags {
+				<span
+					class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-700 dark:text-blue-100"
+				>
+					<span>{ v.TagName }</span>
+				</span>
+			}
+		}
+	</div>
+}

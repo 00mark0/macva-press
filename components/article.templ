@@ -1,0 +1,1675 @@
+package components
+
+import "os"
+import "github.com/00mark0/macva-press/db/services"
+import "fmt"
+import "github.com/00mark0/macva-press/utils"
+import "strings"
+
+var BaseUrl = os.Getenv("BASE_URL")
+
+script handleCommentSort() {
+const select = document.getElementById('comment-sort-select');
+const selectedOption = select.options[select.selectedIndex];
+const url = selectedOption.getAttribute('data-url');
+
+if(url) {
+htmx.ajax('GET', url, { target: '#article-comments', swap: 'innerHTML' });
+} else {
+console.warn('No URL set for this sort option.');
+}
+}
+
+templ Article(content db.GetContentDetailsRow, globalSettings db.GlobalSetting, userReaction string, activeAds []db.Ad, canonical string) {
+	<article class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+		<!-- Media Slider with shadow and rounded corners -->
+		<section id="article-page-media-slider" class="mb-8 rounded-xl overflow-hidden shadow-lg dark:shadow-gray-800" hx-get={ fmt.Sprintf("/api/content/media/%s", content.ContentID) } hx-trigger="load" hx-target="#article-page-media-slider" hx-swap="innerHTML">
+			@LoadingSpinner()
+		</section>
+		<!-- Breadcrumb with improved spacing -->
+		<nav class="flex mb-6" aria-label="Breadcrumb">
+			<ol class="flex items-center space-x-2 text-sm overflow-hidden w-full">
+				<li class="flex items-center flex-shrink-0">
+					<a href="/" class="font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" aria-label="Home">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+							<path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+						</svg>
+					</a>
+				</li>
+				<li class="flex items-center flex-shrink-0">
+					<a href={ templ.SafeURL(fmt.Sprintf("/kategorije/%s/%s", utils.Slugify(content.CategoryName), content.CategoryID)) } class="flex items-center font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+						<svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+						</svg>
+						<span class="ml-2 font-medium text-gray-700 dark:text-gray-300 hover:underline">{ content.CategoryName }</span>
+					</a>
+				</li>
+				<li class="flex items-center flex-shrink min-w-0">
+					<svg class="h-5 w-5 flex-shrink-0 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+						<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+					</svg>
+					<span class="truncate ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">{ content.Title }</span>
+				</li>
+			</ol>
+		</nav>
+		<!-- Article Header -->
+		<header class="mb-6">
+			<h1 class="text-4xl sm:text-5xl font-bold leading-tight mb-4 text-gray-900 dark:text-white">{ content.Title }</h1>
+			<!-- Article stats moved to header -->
+			<section id="article-stats" class="border-b border-gray-200 dark:border-gray-700 pb-4">
+				@ArticleStats(content, globalSettings, userReaction)
+			</section>
+			<section id="share-buttons" class="mt-4">
+				<div class="flex flex-wrap items-start flex-col gap-4">
+					<!-- Stats and interactions -->
+					<p class="text-sm text-gray-600 dark:text-gray-300">Podelite</p>
+					<div class="flex flex-wrap items-center gap-4">
+						<!-- Share buttons -->
+						<!-- Facebook Share -->
+						<a
+							href={ templ.SafeURL(fmt.Sprintf("https://www.facebook.com/sharer/sharer.php?u=%s", canonical)) }
+							target="_blank"
+							class="flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+							aria-label="Share on Facebook"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 fill-current mr-2">
+								<path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path>
+							</svg>
+							<span class="hidden sm:inline">Facebook</span>
+						</a>
+					</div>
+				</div>
+			</section>
+		</header>
+		for _, ad := range activeAds {
+			if ad.Placement.String == "article" {
+				<div class="lg:col-span-4 mt-6">
+					<a href={ templ.SafeURL(ad.TargetUrl.String) } target="_blank" class="mb-6 w-full">
+						<img src={ ad.ImageUrl.String } alt={ ad.Description.String } onclick="sendAdClick()" class="object-fit mb-6 w-full h-64"/>
+					</a>
+				</div>
+			}
+		}
+		<!-- Main Content with proper typography -->
+		<section id="article-page-content" class="prose max-w-none dark:prose-invert prose-lg prose-gray dark:text-gray-200 mb-32">
+			@utils.ParseHTML(content.ContentDescription)
+		</section>
+		if content.CommentsEnabled && !globalSettings.DisableComments {
+			<!-- Comment Form -->
+			<div class="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
+				<h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Dodajte komentar</h3>
+				<form hx-post={ fmt.Sprintf("/api/content/comments/%s", content.ContentID.String()) } hx-target="#article-comments" hx-swap="innerHTML" hx-on::after-request="if(event.detail.successful) this.reset()" class="space-y-4">
+					<div class="relative">
+						<textarea
+							name="comment_text"
+							id="comment_text"
+							rows="3"
+							class="w-full px-3 py-2 text-gray-700 dark:text-gray-200 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
+							placeholder="Podelite svoje mišljenje..."
+							required
+						></textarea>
+						<button
+							type="button"
+							id="emoji-button"
+							class="absolute right-2 bottom-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none"
+						>
+							😊
+						</button>
+					</div>
+					<div id="emoji-picker" class="hidden"></div>
+					<div class="flex justify-end">
+						<button
+							type="submit"
+							class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+						>
+							Objavi komentar
+						</button>
+					</div>
+				</form>
+			</div>
+			<section id="article-comments" hx-get={ fmt.Sprintf("/api/content/comments/%s", content.ContentID.String()) } hx-trigger="load" hx-target="#article-comments" hx-swap="innerHTML" class="w-full">
+				@LoadingSpinner()
+			</section>
+			<script type="module">
+			  import { EmojiButton } from "https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@4.6.4/+esm";
+			  
+			  // Initialize emoji pickers for all buttons on page load and after any HTMX content loads
+			  document.addEventListener('DOMContentLoaded', initAllEmojiPickers);
+			  document.body.addEventListener('htmx:afterSwap', initAllEmojiPickers);
+			  
+			  function initAllEmojiPickers() {
+			    // Find all emoji buttons
+			    const emojiButtons = document.querySelectorAll('button[id="emoji-button"]');
+			    
+			    emojiButtons.forEach(button => {
+			      // Don't initialize the same button twice
+			      if (button.dataset.emojiInitialized === 'true') return;
+			      
+			      // Find the nearest textarea in the same form
+			      const form = button.closest('form');
+			      const textarea = form ? form.querySelector('textarea') : null;
+			      
+			      if (!textarea) return;
+			      
+			      // Create a new emoji picker for this button
+			      const picker = new EmojiButton({
+			        theme: 'auto',
+			        position: 'top-end'
+			      });
+			      
+			      // Handle emoji selection
+			      picker.on('emoji', selection => {
+			        const emoji = selection.emoji || selection;
+			        
+			        // Insert emoji at cursor position
+			        const start = textarea.selectionStart;
+			        const end = textarea.selectionEnd;
+			        
+			        textarea.value = textarea.value.slice(0, start) + emoji + textarea.value.slice(end);
+			        
+			        // Move cursor after emoji
+			        textarea.focus();
+			        textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+			      });
+			      
+			      // Toggle the picker when button is clicked
+			      button.addEventListener('click', () => picker.togglePicker(button));
+			      
+			      // Mark as initialized to prevent duplicate initialization
+			      button.dataset.emojiInitialized = 'true';
+			    });
+			  }
+			</script>
+		} else {
+			<div class="text-sm text-gray-500 dark:text-gray-400">Komentari su isključeni.</div>
+		}
+	</article>
+	<script>
+		function toggleCommentDropdown(button) {
+			const buttonId = button.id;
+	
+	    		// Define the prefix used before the UUID
+	    		const prefix = "comment-dropdown-button-";
+	
+	    		// Strip the prefix to get the UUID
+			 const commentId = buttonId.startsWith(prefix)
+	    		    ? buttonId.substring(prefix.length)
+	    		    : null;
+	
+	    		if (!commentId) {
+	    		    console.error("Invalid button ID format");
+	    		    return;
+	    		}
+	
+	    		// Build dropdown ID and toggle
+	    		const dropdownId = `comment-dropdown-${commentId}`;
+	    		const dropdown = document.getElementById(dropdownId);
+	
+	    		if (dropdown) {
+	    		    dropdown.classList.toggle('hidden');
+	    		}
+		}
+	
+		
+		function toggleTruncate(button) {
+			const buttonId = button.id;
+		
+			// Prefix before the UUID in the button ID
+			const prefix = "comment-toggle-";
+		
+			// Extract the UUID part
+			const commentId = buttonId.startsWith(prefix)
+				? buttonId.substring(prefix.length)
+				: null;
+		
+			if (!commentId) {
+				console.error("Invalid button ID format");
+				return;
+			}
+		
+			// Get the comment content element
+			const commentTextId = `comment-content-${commentId}`;
+			const textEl = document.getElementById(commentTextId);
+		
+			if (!textEl) {
+				console.error("Comment text element not found");
+				return;
+			}
+		
+			// Toggle truncation and update button text
+			textEl.classList.toggle("line-clamp-3");
+		
+			button.textContent = textEl.classList.contains("line-clamp-3")
+				? "Prikaži više"
+				: "Prikaži manje";
+		}
+	
+		
+		
+		function toggleReplyForm(button) {
+			const buttonId = button.id;
+			const prefix = "reply-button-";
+			const commentId = buttonId.startsWith(prefix)
+				? buttonId.substring(prefix.length)
+				: null;
+		
+			if (!commentId) {
+				console.error("Invalid reply button ID format");
+				return;
+			}
+		
+			const replyFormId = `reply-form-container-${commentId}`;
+			const formEl = document.getElementById(replyFormId);
+		
+			if (formEl) {
+				const textareaId = `reply-text-${commentId}`;
+				const textarea = document.getElementById(textareaId);
+		
+				if (formEl.classList.contains("hidden")) {
+					formEl.classList.remove("hidden");
+					formEl.classList.add("flex");
+				} else {
+					formEl.classList.remove("flex");
+					formEl.classList.add("hidden");
+					if (textarea) textarea.value = "";
+				}
+			}
+		}
+		
+		function hideReplyForm(button) {
+			const formEl = button.closest("form")?.parentElement;
+		
+			if (formEl) {
+				formEl.classList.add("hidden");
+				formEl.classList.remove("flex");
+		
+				const textarea = formEl.querySelector("textarea");
+				if (textarea) textarea.value = "";
+			}
+		}
+
+		function toggleEditForm(button) {
+			const buttonId = button.id;
+			const prefix = "edit-button-";
+			const commentId = buttonId.startsWith(prefix)
+				? buttonId.substring(prefix.length)
+				: null;
+			
+			if (!commentId) {
+				console.error("Invalid edit button ID format");
+				return;
+			}
+		
+			const replyFormId = `edit-form-container-${commentId}`;
+			const formEl = document.getElementById(replyFormId);
+			const commentDropdownContainerId = `comment-dropdown-${commentId}`;
+            const commentDropdownContainer = document.getElementById(commentDropdownContainerId);
+			const commentContentContainerId = `comment-content-${commentId}`;
+            const commentContentContainer = document.getElementById(commentContentContainerId);
+		
+			if (formEl) {
+				if (formEl.classList.contains("hidden")) {
+					formEl.classList.remove("hidden");
+					formEl.classList.add("flex");
+					commentDropdownContainer.classList.add("hidden");
+                    commentContentContainer.classList.add("hidden");
+				} else {
+					formEl.classList.remove("flex");
+					formEl.classList.add("hidden");
+                    commentDropdownContainer.classList.remove("hidden");
+                    commentContentContainer.classList.remove("hidden");
+				}
+			}
+		}
+
+		function hideEditForm(button) {
+			const formEl = button.closest("form")?.parentElement;
+
+            if (!formEl) {
+                console.error("Form element not found");
+                return;
+            }
+
+			const buttonId = button.id;
+			const prefix = "cancel-edit-";
+			const commentId = buttonId.startsWith(prefix)
+				? buttonId.substring(prefix.length)
+				: null;
+
+			if (!commentId) {
+                console.error("Invalid cancel button ID format");
+                return;
+            }
+
+			const commentContentContainerId = `comment-content-${commentId}`;
+            const commentContentContainer = document.getElementById(commentContentContainerId);
+
+			if (!commentContentContainer) {
+                console.error("Comment content container not found");
+                return;
+			}
+		
+			if (formEl) {
+				formEl.classList.add("hidden");
+				formEl.classList.remove("flex");
+                commentContentContainer.classList.remove("hidden");
+			}
+		}
+
+		function showCommentContentContainer(button) {
+            const buttonId = button.id;
+            const prefix = "save-edit-";
+            const commentId = buttonId.startsWith(prefix)
+                ? buttonId.substring(prefix.length)
+                : null;
+            const commentContentContainerId = `comment-content-${commentId}`;
+            const commentContentContainer = document.getElementById(commentContentContainerId);
+        
+            if (commentContentContainer) {
+                commentContentContainer.classList.remove("hidden");
+            }
+		}
+
+		
+		
+		
+		function hideComment(button) {
+		    const buttonId = button.id;
+		    let commentId = null;
+		
+		    // Extract commentId from buttonId
+		    if (buttonId.startsWith("delete-button-")) {
+		        commentId = buttonId.substring("delete-button-".length);
+		    } else if (buttonId.startsWith("admin-delete-button-")) {
+		        commentId = buttonId.substring("admin-delete-button-".length);
+		    }
+		
+		    // Hide the main comment
+		    const comment = document.getElementById(`comment-${commentId}`);
+		    if (comment) {
+		        comment.classList.add("hidden");
+		    }
+		
+		    // Hide the reply info (if it exists)
+		    const replyInfo = document.getElementById(`comment-reply-info-${commentId}`);
+		    if (replyInfo) {
+		        replyInfo.classList.add("hidden");
+		    }
+		
+		    // Hide the replies container (if it exists)
+		    const repliesContainer = document.getElementById(`comment-replies-${commentId}`);
+		    if (repliesContainer) {
+		        repliesContainer.classList.add("hidden");
+		    }
+		
+		    // Hide the "show more replies" button (if it exists)
+		    const showMoreRepliesButton = document.getElementById(`show-more-replies-${commentId}`);
+		    if (showMoreRepliesButton) {
+		        showMoreRepliesButton.classList.add("hidden");
+		    }
+		}
+
+		function sendAdClick() {
+			htmx.ajax('POST', '/api/increment-ads-clicks', {
+			swap: 'none'
+            });
+		}
+
+		document.addEventListener("input", function (event) {
+			if (event.target.tagName.toLowerCase() !== "textarea") return;
+
+			const textarea = event.target;
+			textarea.style.height = "auto"; // reset
+			textarea.style.height = textarea.scrollHeight + "px";
+		});
+	</script>
+}
+
+templ ArticlePage(props ...interface{}) {
+	@Layout(props[0].(db.GetUserByIDRow), props[1].(Meta), props[2].([]db.Ad), props[3].([]db.Category), Article(props[4].(db.GetContentDetailsRow), props[5].(db.GlobalSetting), props[6].(string), props[7].([]db.Ad), props[8].(string)))
+}
+
+templ ArticleMediaSlider(media []db.Medium) {
+	if len(media) > 0 {
+		<div class="article-media-slider-container mx-auto px-4 h-full mb-8">
+			<div class="slider-wrapper w-full h-full relative overflow-hidden rounded-xl">
+				<div class="slider flex w-full h-full shrink-0 aspect-video scrollbar-hide overflow-x-auto overflow-y-hidden scroll-smooth rounded-lg shadow-xl">
+					for i, medium := range media {
+						<div
+							id={ fmt.Sprintf("media-slide-%d", i) }
+							class="slider-item flex flex-col shrink-0 h-full w-full scroll-snap-align-start"
+						>
+							<div class="relative w-full h-full bg-gray-100 dark:bg-gray-800">
+								if medium.MediaType == "image" {
+									<img
+										src={ medium.MediaUrl }
+										alt={ medium.MediaCaption }
+										class="w-full h-full object-contain cursor-zoom-in"
+										data-fullscreen="true"
+										data-index={ fmt.Sprint(i) }
+									/>
+									// Expand icon overlay that appears on hover
+									<div class="expand-icon absolute top-4 left-4 bg-black/50 text-white p-2 rounded-full opacity-0 transition-opacity duration-200 cursor-pointer">
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 1v4m0 0h-4m4 0l-5-5"></path>
+										</svg>
+									</div>
+								} else if medium.MediaType == "video" {
+									<video
+										class="w-full h-full object-contain"
+										controls
+										preload="metadata"
+									>
+										<source src={ medium.MediaUrl } type="video/mp4"/>
+										Your browser does not support the video tag.
+									</video>
+								}
+								if medium.MediaCaption != "" {
+									<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+										<p class="text-white text-sm md:text-base font-medium">{ medium.MediaCaption }</p>
+									</div>
+								}
+							</div>
+						</div>
+					}
+				</div>
+				// Media counter badge (e.g. "2/5")
+				if len(media) > 1 {
+					<div class="media-counter absolute top-4 right-4 bg-black/70 text-white text-xs font-medium px-2 py-1 rounded-full z-10">
+						<span id="current-slide-number">1</span>/<span>{ fmt.Sprint(len(media)) }</span>
+					</div>
+				}
+				// Only show controls if there are multiple media items
+				if len(media) > 1 {
+					// Left arrow
+					<button class="slider-arrow left absolute top-1/2 left-3 bg-black/50 hover:bg-black/70 dark:bg-white/50 dark:hover:bg-white/70 rounded-full p-2 shadow-lg z-10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white dark:text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+						</svg>
+					</button>
+					// Right arrow
+					<button class="slider-arrow right absolute top-1/2 right-3 bg-black/50 hover:bg-black/70 dark:bg-white/50 dark:hover:bg-white/70 rounded-full p-2 shadow-lg z-10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white dark:text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+						</svg>
+					</button>
+					// Media indicator dots with progress bar style
+					<div class="slider-indicators absolute bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center gap-2 px-4 py-2 bg-black/40 dark:bg-white/20 backdrop-blur-sm rounded-full">
+						for i, _ := range media {
+							<button
+								data-slide={ fmt.Sprint(i) }
+								class="slider-indicator cursor-pointer w-2 h-2 bg-gray-300 hover:bg-blue-500 rounded-full transition-all duration-300 ease-in-out"
+							></button>
+						}
+					</div>
+				}
+			</div>
+		</div>
+		<!-- Fullscreen Overlay -->
+		<div id="fullscreen-overlay" class="fixed inset-0 bg-black/90 z-[999] hidden flex-col justify-center items-center">
+			<div class="fullscreen-toolbar absolute top-0 left-0 right-0 flex justify-between items-center p-4 bg-black/70">
+				<div class="text-white font-medium">
+					<span id="fullscreen-counter">1</span>/<span id="fullscreen-total">{ fmt.Sprint(len(media)) }</span>
+				</div>
+				<button id="close-fullscreen" class="text-white hover:text-red-400 transition-colors">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</button>
+			</div>
+			<div class="fullscreen-content-container w-full h-full flex items-center justify-center p-8">
+				<div class="fullscreen-content w-full max-w-6xl h-full flex items-center justify-center relative">
+					for i, medium := range media {
+						if medium.MediaType == "image" {
+							<div class="fullscreen-item h-full w-full hidden flex-col justify-center items-center" data-index={ fmt.Sprint(i) }>
+								<img src={ medium.MediaUrl } alt={ medium.MediaCaption } class="max-h-[80vh] max-w-full object-contain"/>
+								if medium.MediaCaption != "" {
+									<div class="mt-4 text-white text-center">
+										<p class="text-lg">{ medium.MediaCaption }</p>
+									</div>
+								}
+							</div>
+						}
+					}
+				</div>
+			</div>
+			if len(media) > 1 {
+				<button id="fullscreen-prev" class="absolute left-0 sm:left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-3 text-white transition-all duration-200">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+					</svg>
+				</button>
+				<button id="fullscreen-next" class="absolute right-0 sm:right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-3 text-white transition-all duration-200">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+					</svg>
+				</button>
+			}
+		</div>
+		<script>
+				const slider = document.querySelector('.slider');
+				const slides = document.querySelectorAll('.slider-item');
+				const indicators = document.querySelectorAll('.slider-indicator');
+				const leftArrow = document.querySelector('.slider-arrow.left');
+				const rightArrow = document.querySelector('.slider-arrow.right');
+				const currentSlideNumber = document.getElementById('current-slide-number');
+				
+				let currentSlide = 0;
+				const totalSlides = slides.length;
+				
+				// Function to update active states and counter
+				function updateActiveStates(index) {
+					// Update indicators
+					indicators.forEach((indicator, i) => {
+						if (i === index) {
+							indicator.classList.add('bg-blue-500', 'w-3', 'h-3');
+							indicator.classList.remove('bg-gray-300', 'w-2', 'h-2');
+						} else {
+							indicator.classList.remove('bg-blue-500', 'w-3', 'h-3');
+							indicator.classList.add('bg-gray-300', 'w-2', 'h-2');
+						}
+					});
+					
+					// Update counter
+					if (currentSlideNumber) {
+						currentSlideNumber.textContent = (index + 1).toString();
+					}
+					
+					currentSlide = index;
+				}
+				
+				// Function to navigate to a specific slide
+				function goToSlide(index) {
+					if (index < 0) index = totalSlides - 1;
+					if (index >= totalSlides) index = 0;
+					
+					const targetSlide = slides[index];
+					targetSlide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+					updateActiveStates(index);
+				}
+				
+				// Initial active state
+				updateActiveStates(0);
+				
+				// Indicator event listeners
+				indicators.forEach((indicator, index) => {
+					indicator.addEventListener('click', () => {
+						goToSlide(index);
+					});
+				});
+				
+				// Arrow event listeners
+				if (leftArrow && rightArrow) {
+					leftArrow.addEventListener('click', () => {
+						goToSlide(currentSlide - 1);
+					});
+					
+					rightArrow.addEventListener('click', () => {
+						goToSlide(currentSlide + 1);
+					});
+					
+					// Show arrows on hover over slider container
+					const sliderContainer = document.querySelector('.slider-wrapper');
+					if (sliderContainer) {
+						const arrows = document.querySelectorAll('.slider-arrow');
+						const expandIcons = document.querySelectorAll('.expand-icon'); 
+						
+						arrows.forEach(arrow => {
+							arrow.style.opacity = "0.7";
+						});
+						
+						sliderContainer.addEventListener('mouseenter', () => {
+							arrows.forEach(arrow => {
+								arrow.style.opacity = "1";
+							});
+							expandIcons.forEach(icon => {
+								icon.style.opacity = "1";
+							});
+						});
+						
+						sliderContainer.addEventListener('mouseleave', () => {
+							arrows.forEach(arrow => {
+								arrow.style.opacity = "0.7";
+							});
+							expandIcons.forEach(icon => {
+								icon.style.opacity = "0";
+							});
+						});
+					}
+				}
+				
+				// Keyboard navigation
+				document.addEventListener('keydown', (e) => {
+					if (e.key === 'ArrowLeft') {
+						goToSlide(currentSlide - 1);
+					} else if (e.key === 'ArrowRight') {
+						goToSlide(currentSlide + 1);
+					}
+				});
+				
+				// Touch swipe support
+				let touchStartX = 0;
+				let touchEndX = 0;
+				
+				slider.addEventListener('touchstart', (e) => {
+					touchStartX = e.changedTouches[0].screenX;
+				}, { passive: true });
+				
+				slider.addEventListener('touchend', (e) => {
+					touchEndX = e.changedTouches[0].screenX;
+					handleSwipe();
+				}, { passive: true });
+				
+				function handleSwipe() {
+					const swipeThreshold = 50;
+					if (touchEndX < touchStartX - swipeThreshold) {
+						// Swipe left, go to next slide
+						goToSlide(currentSlide + 1);
+					}
+					if (touchEndX > touchStartX + swipeThreshold) {
+						// Swipe right, go to previous slide
+						goToSlide(currentSlide - 1);
+					}
+				}
+				
+				// Intersection Observer to handle scroll-based active state
+				const observerOptions = {
+					root: slider,
+					threshold: 0.5
+				};
+				
+				const observer = new IntersectionObserver((entries) => {
+					entries.forEach(entry => {
+						if (entry.isIntersecting) {
+							const index = Array.from(slides).indexOf(entry.target);
+							updateActiveStates(index);
+						}
+					});
+				}, observerOptions);
+				
+				slides.forEach(slide => observer.observe(slide));
+				
+				// Fullscreen image viewer functionality
+				const fullscreenOverlay = document.getElementById('fullscreen-overlay');
+				const fullscreenItems = document.querySelectorAll('.fullscreen-item');
+				const closeFullscreen = document.getElementById('close-fullscreen');
+				const fullscreenPrev = document.getElementById('fullscreen-prev');
+				const fullscreenNext = document.getElementById('fullscreen-next');
+				const fullscreenCounter = document.getElementById('fullscreen-counter');
+				const fullscreenTotal = document.getElementById('fullscreen-total');
+				
+				let currentFullscreenIndex = 0;
+				
+				// Open fullscreen when clicking on an image
+				const images = document.querySelectorAll('img[data-fullscreen="true"]');
+				images.forEach(img => {
+					img.addEventListener('click', () => {
+						const index = parseInt(img.getAttribute('data-index'));
+						openFullscreen(index);
+					});
+				});
+				
+				// Expand icons also trigger fullscreen
+				const expandIcons = document.querySelectorAll('.expand-icon');
+				expandIcons.forEach((icon, i) => {
+					icon.addEventListener('click', () => {
+						openFullscreen(i);
+					});
+				});
+				
+				function openFullscreen(index) {
+					currentFullscreenIndex = index;
+					fullscreenOverlay.style.display = 'flex';
+					document.body.style.overflow = 'hidden'; // Prevent scrolling behind overlay
+					showFullscreenImage(index);
+					
+					// Add keyboard navigation for fullscreen
+					document.addEventListener('keydown', handleFullscreenKeyboard);
+				}
+				
+				function closeFullscreenView() {
+					fullscreenOverlay.style.display = 'none';
+					document.body.style.overflow = ''; // Restore scrolling
+					
+					// Remove keyboard event listener
+					document.removeEventListener('keydown', handleFullscreenKeyboard);
+				}
+				
+				function showFullscreenImage(index) {
+					fullscreenItems.forEach((item, i) => {
+						if (i === index) {
+							item.style.display = 'flex';
+						} else {
+							item.style.display = 'none';
+						}
+					});
+					
+					if (fullscreenCounter) {
+						fullscreenCounter.textContent = (index + 1).toString();
+					}
+				}
+				
+				function navigateFullscreen(direction) {
+					let newIndex = currentFullscreenIndex + direction;
+					
+					if (newIndex < 0) {
+						newIndex = fullscreenItems.length - 1;
+					} else if (newIndex >= fullscreenItems.length) {
+						newIndex = 0;
+					}
+					
+					currentFullscreenIndex = newIndex;
+					showFullscreenImage(newIndex);
+				}
+				
+				function handleFullscreenKeyboard(e) {
+					if (e.key === 'Escape') {
+						closeFullscreenView();
+					} else if (e.key === 'ArrowLeft') {
+						navigateFullscreen(-1);
+					} else if (e.key === 'ArrowRight') {
+						navigateFullscreen(1);
+					}
+				}
+				
+				// Close button event listener
+				if (closeFullscreen) {
+					closeFullscreen.addEventListener('click', closeFullscreenView);
+				}
+				
+				// Fullscreen navigation arrows
+				if (fullscreenPrev) {
+					fullscreenPrev.addEventListener('click', () => {
+						navigateFullscreen(-1);
+					});
+				}
+				
+				if (fullscreenNext) {
+					fullscreenNext.addEventListener('click', () => {
+						navigateFullscreen(1);
+					});
+				}
+				
+				// Close when clicking outside the image (on the dark background)
+				fullscreenOverlay.addEventListener('click', (e) => {
+					if (e.target === fullscreenOverlay) {
+						closeFullscreenView();
+					}
+				});
+		</script>
+		<style>
+			.slider-wrapper {
+				box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+			}
+			
+			.slider {
+				scroll-snap-type: x mandatory;
+				scroll-behavior: smooth;
+				-webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS */
+			}
+			
+			.slider::-webkit-scrollbar {
+				display: none; /* Safari and Chrome */
+			}
+			
+			/* Ensure each child (slide) aligns with the scroll-snap */
+			.slider > div {
+				scroll-snap-align: start; /* Snap the slides to the start when scrolled */
+			}
+			
+			.slider-arrow {
+				transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+			}
+			
+			.slider-arrow:hover {
+				transform: translateY(-20%) scale(1.1);
+			}
+			
+			.slider-indicator.bg-blue-500 {
+				box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+			}
+			
+			/* Cursor zoom-in indicates the image is clickable */
+			img[data-fullscreen="true"] {
+				cursor: zoom-in;
+			}
+			
+			/* Fullscreen overlay animations */
+			#fullscreen-overlay {
+				transition: opacity 0.3s ease;
+			}
+			
+			.fullscreen-content-container {
+				transition: transform 0.3s ease;
+			}
+		</style>
+	}
+}
+
+templ ArticleStats(v db.GetContentDetailsRow, globalSettings db.GlobalSetting, userReaction string) {
+	<div class="flex flex-wrap items-center justify-between gap-4">
+		<!-- Publishing info -->
+		<div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+			<span class="inline-block mr-4 font-medium">By { v.Username }</span>
+			<time datetime={ v.PublishedAt.Time.Format("2006-01-02") } class="inline-block">
+				{ v.PublishedAt.Time.Format("January 2, 2006 at 3:04 PM") }
+			</time>
+		</div>
+		<!-- Stats and interactions -->
+		<div class="flex flex-wrap items-center gap-4">
+			<!-- Like/Dislike buttons -->
+			<div class="flex items-center space-x-2">
+				<button
+					id="likeButton"
+					class={ templ.SafeClass(fmt.Sprintf("curor-pointer flex items-center space-x-1 py-1 px-3 rounded-full transition-colors %s", 
+                        getReactionButtonClasses(userReaction, "like"))) }
+					hx-post={ fmt.Sprintf("/api/content/like/%s", v.ContentID) }
+					hx-target="#article-stats"
+					hx-swap="innerHTML"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+						<path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z"></path>
+					</svg>
+				</button>
+				<button
+					id="dislikeButton"
+					class={ templ.SafeClass(fmt.Sprintf("cursor-pointer flex items-center space-x-1 py-1 px-3 rounded-full transition-colors %s", 
+                        getReactionButtonClasses(userReaction, "dislike"))) }
+					hx-post={ fmt.Sprintf("/api/content/dislike/%s", v.ContentID) }
+					hx-target="#article-stats"
+					hx-swap="innerHTML"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+						<path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.105-1.79l-.05-.025A4 4 0 0011.055 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z"></path>
+					</svg>
+				</button>
+			</div>
+			<!-- Views, Likes, Comments counters -->
+			<div class="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-300">
+				if v.ViewCountEnabled && !globalSettings.DisableViews {
+					<span class="flex items-center hover:text-green-600 transition-colors">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+							<path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+							<path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path>
+						</svg>
+						{ fmt.Sprint(v.ViewCount) }
+					</span>
+				}
+				if v.LikeCountEnabled && !globalSettings.DisableLikes {
+					<span class="flex items-center hover:text-red-600 transition-colors">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+							<path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z"></path>
+						</svg>
+						{ fmt.Sprint(v.LikeCount) }
+					</span>
+				}
+				if v.DislikeCountEnabled && !globalSettings.DisableDislikes {
+					<span class="flex items-center hover:text-red-600 transition-colors">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+							<path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.105-1.79l-.05-.025A4 4 0 0011.055 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z"></path>
+						</svg>
+						{ fmt.Sprint(v.DislikeCount) }
+					</span>
+				}
+				if v.CommentsEnabled && !globalSettings.DisableComments {
+					<span class="flex items-center hover:text-blue-600 transition-colors">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path>
+						</svg>
+						{ fmt.Sprint(v.CommentCount) }
+					</span>
+				}
+			</div>
+		</div>
+	</div>
+}
+
+templ ArticleComments(contentID string, comments []db.ListContentCommentsRow, userData db.GetUserByIDRow, userReactions map[string]string, nextLimit int, url string, commentCount int) {
+	<div class="w-full max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+		<!-- Sorting Options -->
+		if len(comments) > 0 {
+			<div class="flex flex-col sm:flex-row sm:justify-between items-center mb-4">
+				<div class="flex items-center">
+					<h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mr-2">
+						if commentCount == 1 {
+							{ fmt.Sprint(commentCount) } Komentar
+						} else {
+							{ fmt.Sprint(commentCount) } Komentara 
+						}
+					</h3>
+					<!-- Refresh Button -->
+					<button
+						if !strings.Contains(url, "/score") {
+							hx-get={ fmt.Sprintf("/api/content/comments/%s", contentID) }
+						} else {
+							hx-get={ fmt.Sprintf("/api/content/comments/%s/score", contentID) }
+						}
+						hx-target="#article-comments"
+						hx-swap="innerHTML"
+						class="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 focus:outline-none transition duration-150 ease-in-out"
+						title="Osveži komentare"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+						</svg>
+					</button>
+				</div>
+				<div class="flex flex-col sm:flex-row items-center space-x-2">
+					<span class="text-sm text-gray-600 dark:text-gray-400">Sortiraj po:</span>
+					<select
+						class="text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+						id="comment-sort-select"
+						onChange={ handleCommentSort() }
+						name="sort_by"
+					>
+						// make a func that will decide which is selected base on url passed
+						<option
+							data-url={ fmt.Sprintf("/api/content/comments/%s?limit=%d", contentID, nextLimit-10) }
+							if !strings.Contains(url, "/score") {
+								selected="selected"
+							}
+						>
+							Najnoviji
+						</option>
+						<option
+							data-url={ fmt.Sprintf("/api/content/comments/%s/score?limit=%d", contentID, nextLimit-10) }
+							if strings.Contains(url, "/score") {
+								selected="selected"
+							}
+						>Najbolji</option>
+					</select>
+				</div>
+			</div>
+		}
+		<!-- Comments Section -->
+		<div class="space-y-6">
+			<div id="comments-container" class="space-y-6">
+				if len(comments) == 0 {
+					<div class="text-center py-8 text-gray-500 dark:text-gray-400">
+						<p>Trenutno nema komentara. Podelite svoje mišljenje prvi!</p>
+					</div>
+				} else {
+					for _, comment := range comments {
+						@CommentItem(comment, userData, userReactions[comment.CommentID.String()])
+					}
+				}
+			</div>
+			if len(comments) == nextLimit {
+				<div class="text-center mt-8">
+					<button
+						hx-get={ url + fmt.Sprintf("%d", nextLimit) }
+						hx-target="#article-comments"
+						hx-swap="innerHTML scroll:top"
+						hx-trigger="click"
+						class="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
+					>
+						Učitaj više
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-4 w-4 ml-2"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+						</svg>
+					</button>
+				</div>
+			}
+		</div>
+	</div>
+}
+
+templ CommentItem(comment db.ListContentCommentsRow, userData db.GetUserByIDRow, userReaction string) {
+	<div id={ fmt.Sprintf("comment-%s", comment.CommentID.String()) } class="flex space-x-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+		<!-- User Avatar -->
+		<div class="flex-shrink-0">
+			<img class="w-8 h-8 sm:w-10 sm:h-10 rounded-full" src={ comment.Pfp } alt="user avatar"/>
+		</div>
+		<!-- Comment Content -->
+		<div class="flex-1 min-w-0">
+			<div class="flex items-center justify-between mb-1">
+				<div class="flex items-center">
+					<h4 class="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
+						{ comment.Username }
+					</h4>
+					<span class="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full inline-block mx-1"></span>
+					<span class="text-xs text-gray-500 dark:text-gray-400">
+						if comment.UpdatedAt.Valid {
+							{ utils.TimeAgo(comment.UpdatedAt.Time) } (izmenjeno)
+						} else {
+							{ utils.TimeAgo(comment.CreatedAt.Time) }
+						}
+					</span>
+				</div>
+				<!-- Options Menu (Three Dots) -->
+				<div class="relative">
+					<button
+						id={ fmt.Sprintf("comment-dropdown-button-%s", comment.CommentID.String()) }
+						onclick="toggleCommentDropdown(this)"
+						class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+							<path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
+						</svg>
+					</button>
+					<!-- Dropdown Menu -->
+					if comment.UserID == userData.UserID || userData.Role == "admin" {
+						<div
+							id={ fmt.Sprintf("comment-dropdown-%s", comment.CommentID.String()) }
+							class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
+						>
+							<div class="py-1" role="menu" aria-orientation="vertical">
+								if comment.UserID == userData.UserID {
+									<button
+										id={ fmt.Sprintf("edit-button-%s", comment.CommentID.String()) }
+										onclick="toggleEditForm(this)"
+										class="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+										role="menuitem"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+										</svg>
+										Uredi
+									</button>
+								}
+								if comment.UserID == userData.UserID {
+									<button
+										id={ fmt.Sprintf("delete-button-%s", comment.CommentID.String()) }
+										hx-delete={ fmt.Sprintf("/api/comments/%s", comment.CommentID.String()) }
+										hx-swap="none"
+										hx-trigger="click"
+										onclick="hideComment(this)"
+										class="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+										role="menuitem"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+										</svg>
+										Obriši
+									</button>
+								}
+								if userData.Role == "admin" {
+									<button
+										id={ fmt.Sprintf("admin-delete-button-%s", comment.CommentID.String()) }
+										hx-delete={ fmt.Sprintf("/api/comments/%s", comment.CommentID.String()) }
+										hx-swap="none"
+										hx-trigger="click"
+										onclick="hideComment(this)"
+										class="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+										role="menuitem"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+										</svg>
+										Obriši (Admin)
+									</button>
+								}
+							</div>
+						</div>
+					}
+				</div>
+			</div>
+			<div id={ fmt.Sprintf("comment-content-%s", comment.CommentID.String()) } class="line-clamp-3 break-all text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+				{ comment.CommentText }
+			</div>
+			if IsLongComment(comment.CommentText) {
+				<button
+					id={ fmt.Sprintf("comment-toggle-%s", comment.CommentID.String()) }
+					onclick="toggleTruncate(this)"
+					class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium mt-1"
+				>
+					Prikaži više
+				</button>
+			}
+			<!-- Edit form -->
+			<div id={ fmt.Sprintf("edit-form-container-%s", comment.CommentID.String()) } class="hidden mt-3 mb-3 items-start space-x-3">
+				<form hx-put={ fmt.Sprintf("/api/comments/%s/edit", comment.CommentID.String()) } hx-target={ fmt.Sprintf("#comment-content-%s", comment.CommentID.String()) } hx-swap="outerHTML" hx-on::after-request="if(event.detail.successful) this.classList.add('hidden')" class="flex-1 space-y-2">
+					<div class="relative">
+						<textarea
+							id={ fmt.Sprintf("edit-text-%s", comment.CommentID.String()) }
+							name="edit_text"
+							rows="2"
+							class="w-full resize-none px-3 py-2 text-md text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900"
+							placeholder="Uredite..."
+							required
+						>{ comment.CommentText }</textarea>
+						<button
+							type="button"
+							id="emoji-button"
+							class="absolute top-9 right-2 text-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none"
+						>
+							😊
+						</button>
+						<div class="flex space-x-2">
+							<button
+								id={ fmt.Sprintf("save-edit-%s", comment.CommentID.String()) }
+								onclick="showCommentContentContainer(this)"
+								type="submit"
+								class="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							>
+								Uredi
+							</button>
+							<button
+								id={ fmt.Sprintf("cancel-edit-%s", comment.CommentID.String()) }
+								type="button"
+								onclick="hideEditForm(this)"
+								class="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-md focus:outline-none"
+							>
+								Odustani
+							</button>
+						</div>
+					</div>
+				</form>
+			</div>
+			<!-- Comment Actions -->
+			<div id={ fmt.Sprintf("comment-actions-%s", comment.CommentID.String()) } class="mt-2 flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+				<!-- Upvote Button -->
+				<button
+					class={ getUpvoteButtonClass(userReaction) }
+					hx-post={ fmt.Sprintf("/api/comments/%s/upvote", comment.CommentID.String()) }
+					hx-target={ fmt.Sprintf("#comment-actions-%s", comment.CommentID.String()) }
+					hx-swap="innerHTML"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+						<path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z"></path>
+					</svg>
+				</button>
+				<div id={ fmt.Sprintf("comment-score-%s", comment.CommentID.String()) }>
+					<span>{ fmt.Sprint(comment.Score) }</span>
+				</div>
+				<!-- Downvote Button -->
+				<button
+					class={ getDownvoteButtonClass(userReaction) }
+					hx-post={ fmt.Sprintf("/api/comments/%s/downvote", comment.CommentID.String()) }
+					hx-target={ fmt.Sprintf("#comment-actions-%s", comment.CommentID.String()) }
+					hx-swap="innerHTML"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+						<path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.105-1.79l-.05-.025A4 4 0 0011.055 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z"></path>
+					</svg>
+				</button>
+				<!-- Reply Button -->
+				<button id={ fmt.Sprintf("reply-button-%s", comment.CommentID.String()) } onclick="toggleReplyForm(this)" class="flex items-center space-x-1 hover:text-blue-600 dark:hover:text-blue-400">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+					</svg>
+					<span>Odgovori</span>
+				</button>
+			</div>
+			<!-- Reply Form -->
+			<div id={ fmt.Sprintf("reply-form-container-%s", comment.CommentID.String()) } class="hidden mt-3 items-start space-x-3">
+				if userData.Pfp != "" {
+					<img class="w-8 h-8 sm:w-10 sm:h-10 rounded-full" src={ userData.Pfp } alt="user avatar"/>
+				}
+				<form hx-post={ fmt.Sprintf("/api/comments/%s/reply", comment.CommentID.String()) } hx-target={ fmt.Sprintf("#comment-replies-%s", comment.CommentID.String()) } hx-swap="afterbegin" hx-on::after-request="hideReplyForm(this)" class="flex-1 space-y-2">
+					<div class="relative">
+						<textarea
+							id={ fmt.Sprintf("reply-text-%s", comment.CommentID.String()) }
+							name="reply_text"
+							rows="2"
+							class="w-full resize-none px-3 py-2 text-md text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900"
+							placeholder="Odgovorite..."
+							required
+						></textarea>
+						<button
+							type="button"
+							id="emoji-button"
+							class="absolute top-9 right-2 text-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none"
+						>
+							😊
+						</button>
+						<div class="flex space-x-2">
+							<button
+								type="submit"
+								class="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							>
+								Odgovori
+							</button>
+							<button
+								type="button"
+								onclick="hideReplyForm(this)"
+								class="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-md focus:outline-none"
+							>
+								Odustani
+							</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<div id={ fmt.Sprintf("comment-reply-info-%s", comment.CommentID.String()) } hx-get={ fmt.Sprintf("/api/comments/%s/reply-info", comment.CommentID.String()) } hx-target={ fmt.Sprintf("#comment-reply-info-%s", comment.CommentID.String()) } hx-swap="innerHTML" hx-trigger="load"></div>
+	<div id={ fmt.Sprintf("comment-replies-%s", comment.CommentID.String()) } class="pl-6 sm:pl-12 mt-2 space-y-3 border-l-2 border-gray-200 dark:border-gray-700">
+		<!-- Replies will be inserted here -->
+	</div>
+}
+
+templ CommentReplyItem(comment db.ListContentCommentsRow, userData db.GetUserByIDRow, userReaction string) {
+	<div id={ fmt.Sprintf("comment-%s", comment.CommentID.String()) } class="flex space-x-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+		<!-- User Avatar -->
+		<div class="flex-shrink-0">
+			<img class="w-6 h-6 sm:w-10 sm:h-10 rounded-full" src={ comment.Pfp } alt="user avatar"/>
+		</div>
+		<!-- Comment Content -->
+		<div class="flex-1 min-w-0">
+			<div class="flex items-center justify-between mb-1">
+				<div class="flex items-center">
+					<h4 class="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
+						{ comment.Username }
+					</h4>
+					<span class="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full inline-block mx-1"></span>
+					<span class="text-xs text-gray-500 dark:text-gray-400">
+						if comment.UpdatedAt.Valid {
+							{ utils.TimeAgo(comment.UpdatedAt.Time) } (izmenjeno)
+						} else {
+							{ utils.TimeAgo(comment.CreatedAt.Time) }
+						}
+					</span>
+				</div>
+				<!-- Options Menu (Three Dots) -->
+				<div class="relative">
+					<button
+						id={ fmt.Sprintf("comment-dropdown-button-%s", comment.CommentID.String()) }
+						onclick="toggleCommentDropdown(this)"
+						class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+							<path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
+						</svg>
+					</button>
+					<!-- Dropdown Menu -->
+					if comment.UserID == userData.UserID || userData.Role == "admin" {
+						<div
+							id={ fmt.Sprintf("comment-dropdown-%s", comment.CommentID.String()) }
+							class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
+						>
+							<div class="py-1" role="menu" aria-orientation="vertical">
+								if comment.UserID == userData.UserID {
+									<button
+										id={ fmt.Sprintf("edit-button-%s", comment.CommentID.String()) }
+										onclick="toggleEditForm(this)"
+										class="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+										role="menuitem"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+										</svg>
+										Uredi
+									</button>
+								}
+								if comment.UserID == userData.UserID {
+									<button
+										id={ fmt.Sprintf("delete-button-%s", comment.CommentID.String()) }
+										hx-delete={ fmt.Sprintf("/api/comments/%s", comment.CommentID.String()) }
+										hx-swap="outerHTML"
+										hx-trigger="click"
+										onclick="hideComment(this)"
+										class="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+										role="menuitem"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+										</svg>
+										Obriši
+									</button>
+								}
+								if userData.Role == "admin" {
+									<button
+										id={ fmt.Sprintf("admin-delete-button-%s", comment.CommentID.String()) }
+										hx-delete={ fmt.Sprintf("/api/comments/%s", comment.CommentID.String()) }
+										hx-swap="outerHTML"
+										hx-trigger="click"
+										onclick="hideComment(this)"
+										class="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+										role="menuitem"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+										</svg>
+										Obriši (Admin)
+									</button>
+								}
+							</div>
+						</div>
+					}
+				</div>
+			</div>
+			<div id={ fmt.Sprintf("comment-content-%s", comment.CommentID.String()) } class="line-clamp-3 break-all text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+				if strings.HasPrefix(comment.CommentText, "@") {
+					if idx := strings.Index(comment.CommentText, " "); idx > 0 {
+						<span class="text-blue-500">{ comment.CommentText[:idx] }</span>
+						{ comment.CommentText[idx:] }
+					} else {
+						{ comment.CommentText }
+					}
+				} else {
+					{ comment.CommentText }
+				}
+			</div>
+			if IsLongComment(comment.CommentText) {
+				<button
+					id={ fmt.Sprintf("comment-toggle-%s", comment.CommentID.String()) }
+					onclick="toggleTruncate(this)"
+					class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium mt-1"
+				>
+					Prikaži više
+				</button>
+			}
+			<!-- Edit form -->
+			<div id={ fmt.Sprintf("edit-form-container-%s", comment.CommentID.String()) } class="hidden mt-3 mb-3 items-start space-x-3">
+				<form hx-put={ fmt.Sprintf("/api/comments/%s/edit", comment.CommentID.String()) } hx-target={ fmt.Sprintf("#comment-content-%s", comment.CommentID.String()) } hx-swap="outerHTML" hx-on::after-request="if(event.detail.successful) this.classList.add('hidden')" class="flex-1 space-y-2">
+					<div class="relative">
+						<textarea
+							id={ fmt.Sprintf("edit-text-%s", comment.CommentID.String()) }
+							name="edit_text"
+							rows="2"
+							class="w-full resize-none px-3 py-2 text-md text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900"
+							placeholder="Uredite..."
+							required
+						>{ comment.CommentText }</textarea>
+						<button
+							type="button"
+							id="emoji-button"
+							class="absolute top-9 right-2 text-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none"
+						>
+							😊
+						</button>
+						<div class="flex space-x-2">
+							<button
+								id={ fmt.Sprintf("save-edit-%s", comment.CommentID.String()) }
+								onclick="showCommentContentContainer(this)"
+								type="submit"
+								class="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							>
+								Uredi
+							</button>
+							<button
+								id={ fmt.Sprintf("cancel-edit-%s", comment.CommentID.String()) }
+								type="button"
+								onclick="hideEditForm(this)"
+								class="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-md focus:outline-none"
+							>
+								Odustani
+							</button>
+						</div>
+					</div>
+				</form>
+			</div>
+			<!-- Comment Actions -->
+			<div id={ fmt.Sprintf("comment-actions-%s", comment.CommentID.String()) } class="mt-2 flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+				<!-- Upvote Button -->
+				<button
+					class={ getUpvoteButtonClass(userReaction) }
+					hx-post={ fmt.Sprintf("/api/comments/%s/upvote", comment.CommentID.String()) }
+					hx-target={ fmt.Sprintf("#comment-actions-%s", comment.CommentID.String()) }
+					hx-swap="innerHTML"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+						<path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z"></path>
+					</svg>
+				</button>
+				<div id={ fmt.Sprintf("comment-score-%s", comment.CommentID.String()) }>
+					<span>{ fmt.Sprint(comment.Score) }</span>
+				</div>
+				<!-- Downvote Button -->
+				<button
+					class={ getDownvoteButtonClass(userReaction) }
+					hx-post={ fmt.Sprintf("/api/comments/%s/downvote", comment.CommentID.String()) }
+					hx-target={ fmt.Sprintf("#comment-actions-%s", comment.CommentID.String()) }
+					hx-swap="innerHTML"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+						<path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.105-1.79l-.05-.025A4 4 0 0011.055 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z"></path>
+					</svg>
+				</button>
+				<!-- Reply Button -->
+				<button id={ fmt.Sprintf("reply-button-%s", comment.CommentID.String()) } onclick="toggleReplyForm(this)" class="flex items-center space-x-1 hover:text-blue-600 dark:hover:text-blue-400">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+					</svg>
+					<span>Odgovori</span>
+				</button>
+			</div>
+			<!-- Reply Form -->
+			<div id={ fmt.Sprintf("reply-form-container-%s", comment.CommentID.String()) } class="hidden mt-3 items-start space-x-1 sm:space-x-3">
+				if userData.Pfp != "" {
+					<img class="w-6 h-6 sm:w-10 sm:h-10 rounded-full" src={ userData.Pfp } alt="user avatar"/>
+				}
+				<form hx-post={ fmt.Sprintf("/api/comments/%s/reply", comment.ParentCommentID.String()) } hx-target={ fmt.Sprintf("#comment-replies-%s", comment.ParentCommentID.String()) } hx-swap="afterbegin" hx-on::after-request="hideReplyForm(this)" class="flex-1 space-y-2">
+					<div class="relative">
+						<input type="hidden" name="reply_to_reply" value={ comment.CommentID.String() }/>
+						<textarea
+							id={ fmt.Sprintf("reply-text-%s", comment.CommentID.String()) }
+							name="reply_text"
+							rows="2"
+							class="w-full resize-none px-3 py-2 text-md text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900"
+							placeholder="Odgovorite..."
+							required
+						></textarea>
+						<button
+							type="button"
+							id="emoji-button"
+							class="absolute top-9 right-2 text-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none"
+						>
+							😊
+						</button>
+						<div class="flex space-x-2">
+							<button
+								type="submit"
+								class="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+								hx-on:after-request="hideReplyForm(this)"
+							>
+								Odgovori
+							</button>
+							<button
+								type="button"
+								onclick="hideReplyForm(this)"
+								class="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-md focus:outline-none"
+							>
+								Odustani
+							</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+}
+
+// CommentActions renders just the actions part of a comment (for HTMX updates)
+templ CommentActions(comment db.Comment, userData db.GetUserByIDRow, userReaction string) {
+	<!-- Comment Actions -->
+	<div class="w-full">
+		<div id={ fmt.Sprintf("comment-actions-%s", comment.CommentID.String()) } class="mt-2 flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+			<!-- Upvote Button -->
+			<button
+				class={ getUpvoteButtonClass(userReaction) }
+				hx-post={ fmt.Sprintf("/api/comments/%s/upvote", comment.CommentID.String()) }
+				hx-target={ fmt.Sprintf("#comment-actions-%s", comment.CommentID.String()) }
+				hx-swap="outerHTML"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+					<path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z"></path>
+				</svg>
+			</button>
+			<div id={ fmt.Sprintf("comment-score-%s", comment.CommentID.String()) }>
+				<span>{ fmt.Sprint(comment.Score) }</span>
+			</div>
+			<!-- Downvote Button -->
+			<button
+				class={ getDownvoteButtonClass(userReaction) }
+				hx-post={ fmt.Sprintf("/api/comments/%s/downvote", comment.CommentID.String()) }
+				hx-target={ fmt.Sprintf("#comment-actions-%s", comment.CommentID.String()) }
+				hx-swap="outerHTML"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+					<path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.105-1.79l-.05-.025A4 4 0 0011.055 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z"></path>
+				</svg>
+			</button>
+			<!-- Reply Button -->
+			<button id={ fmt.Sprintf("reply-button-%s", comment.CommentID.String()) } onclick="toggleReplyForm(this)" class="flex items-center space-x-1 hover:text-blue-600 dark:hover:text-blue-400">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+				</svg>
+				<span>Odgovori</span>
+			</button>
+		</div>
+	</div>
+}
+
+templ CommentReplyInfo(replyCount int, adminPfp string, commentID string) {
+	if replyCount > 0 {
+		<div id={ fmt.Sprintf("comment-reply-info-%s", commentID) } class="ml-12 mt-2 flex items-center text-sm text-blue-600 dark:text-blue-400 cursor-pointer">
+			<button
+				id={ fmt.Sprintf("more-replies-button-%s", commentID) }
+				class="flex hover:bg-blue-200 dark:hover:bg-blue-800 space-x-2 rounded-xl p-2"
+				onclick="toggleCommentReplies(this)"
+				data-comment-id={ commentID }
+				data-loaded="false"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+				</svg>
+				if adminPfp != "" {
+					<div class="flex space-x-2 items-center">
+						<img
+							src={ adminPfp }
+							alt="admin avatar"
+							class="w-4 h-4 rounded-full ring-2 ring-blue-600 dark:ring-blue-400"
+						/>
+						<span class="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full inline-block"></span>
+					</div>
+				}
+				if replyCount == 1 {
+					<span>{ fmt.Sprint(replyCount) } odgovor</span>
+				} else {
+					<span>{ fmt.Sprint(replyCount) } odgovora</span>
+				}
+			</button>
+		</div>
+	}
+	<script>
+        function toggleCommentReplies(button) {
+            const commentId = button.dataset.commentId;
+            const repliesContainerId = `comment-replies-${commentId}`;
+            const repliesContainer = document.getElementById(repliesContainerId);
+            const svg = button.querySelector("svg");
+            
+            if (!repliesContainer || !svg) return;
+            
+            // Toggle arrow rotation
+            svg.classList.toggle("rotate-180");
+            
+            // Track loaded state with data attribute instead of checking innerHTML
+            const isLoaded = button.dataset.loaded === "true";
+            
+            if (!isLoaded) {
+                // First time - load replies
+                htmx.ajax('GET', `/api/comments/${commentId}/more-replies`, {
+                    target: `#${repliesContainerId}`,
+                    swap: 'innerHTML'
+                });
+                button.dataset.loaded = "true";
+            } else {
+                // Already loaded - clear content
+                repliesContainer.innerHTML = "";
+                button.dataset.loaded = "false";
+            }
+        }
+    </script>
+}
+
+templ CommentReplyList(replies []db.ListContentCommentsRow, userData db.GetUserByIDRow, userReactions map[string]string, nextLimit int, url string) {
+	<div id={ fmt.Sprintf("comment-replies-%s", replies[0].ParentCommentID.String()) }>
+		for _, reply := range replies {
+			<div class="mb-3">
+				@CommentReplyItem(reply, userData, userReactions[reply.CommentID.String()])
+			</div>
+		}
+	</div>
+	if len(replies) >= nextLimit {
+		<div id={ fmt.Sprintf("show-more-replies-%s", replies[0].ParentCommentID.String()) } class="pl-6 sm:pl-12 mt-2">
+			<button
+				hx-get={ fmt.Sprintf("/api/comments/%s/more-replies?limit=%d", replies[0].ParentCommentID.String(), nextLimit) }
+				hx-target={ fmt.Sprintf("#comment-replies-%s", replies[0].ParentCommentID.String()) }
+				hx-swap="innerHTML"
+				hx-trigger="click"
+				class="flex items-center text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium py-2"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+				</svg>
+				<span>Prikaži više odgovora</span>
+			</button>
+		</div>
+	}
+}
+
+templ EditCommentResponse(comment db.UpdateCommentRow) {
+	<div id={ fmt.Sprintf("comment-content-%s", comment.CommentID.String()) } class="line-clamp-3 break-all text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+		if strings.HasPrefix(comment.CommentText, "@") {
+			if idx := strings.Index(comment.CommentText, " "); idx > 0 {
+				<span class="text-blue-500">{ comment.CommentText[:idx] }</span>
+				{ comment.CommentText[idx:] }
+			} else {
+				{ comment.CommentText }
+			}
+		} else {
+			{ comment.CommentText }
+		}
+	</div>
+}
+
+// Helper functions for reaction button styling
+func getUpvoteButtonClass(userReaction string) string {
+	baseClass := "flex items-center space-x-1"
+	if userReaction == "like" {
+		return baseClass + " text-blue-600 dark:text-blue-400"
+	}
+	return baseClass + " hover:text-blue-600 dark:hover:text-blue-400"
+}
+
+func getDownvoteButtonClass(userReaction string) string {
+	baseClass := "flex items-center space-x-1"
+	if userReaction == "dislike" {
+		return baseClass + " text-blue-600 dark:text-blue-400"
+	}
+	return baseClass + " hover:text-blue-600 dark:hover:text-blue-400"
+}
+
+// Helper function to determine button classes based on user's reaction
+func getReactionButtonClasses(userReaction string, buttonType string) string {
+	if userReaction == buttonType {
+		if buttonType == "like" {
+			return "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+		} else if buttonType == "dislike" {
+			return "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+		}
+	}
+	return "bg-gray-100 dark:bg-gray-800 dark:text-gray-300"
+}
+
+// In your utils package
+func IsLongComment(text string) bool {
+	const maxRunes = 300      // total character limit (safe for unicode)
+	const maxNewlines = 3     // more than 3 line breaks = long
+	const maxLineLength = 150 // any single line longer than this is probably unbreakable
+
+	if len([]rune(text)) > maxRunes {
+		return true
+	}
+
+	if strings.Count(text, "\n") > maxNewlines {
+		return true
+	}
+
+	lines := strings.Split(text, "\n")
+	for _, line := range lines {
+		if len([]rune(line)) > maxLineLength {
+			return true
+		}
+	}
+
+	return false
+}

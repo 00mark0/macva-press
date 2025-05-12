@@ -1,0 +1,65 @@
+// verification_success.templ
+package components
+
+templ VerificationSuccess() {
+	<!DOCTYPE html>
+	<html lang="sr">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>Uspešna Verifikacija - Mačva Press</title>
+			<link rel="preload" href="/static/css/output.css" as="style"/>
+			<link href="/static/css/output.css" rel="stylesheet"/>
+		</head>
+		<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+			<div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
+				<div class="mb-6">
+					<div class="mx-auto w-24 h-24 bg-green-100 rounded-full flex items-center justify-center">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+						</svg>
+					</div>
+				</div>
+				<h1 class="text-2xl font-bold text-gray-800 mb-4">Email Uspešno Verifikovan!</h1>
+				<p class="text-gray-600 mb-8">
+					Vaša email adresa je uspešno verifikovana. Sada možete pristupiti svom nalogu sa svim funkcionalnostima.
+				</p>
+				<a href="/login" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-md transition duration-300">
+					Nazad na prijavu
+				</a>
+			</div>
+		</body>
+	</html>
+}
+
+templ VerificationError() {
+	<!DOCTYPE html>
+	<html lang="sr">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>Greška pri Verifikaciji - Mačva Press</title>
+			<link rel="preload" href="/static/css/output.css" as="style"/>
+			<link href="/static/css/output.css" rel="stylesheet"/>
+		</head>
+		<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+			<div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
+				<div class="mb-6">
+					<div class="mx-auto w-24 h-24 bg-red-100 rounded-full flex items-center justify-center">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+						</svg>
+					</div>
+				</div>
+				<h1 class="text-2xl font-bold text-gray-800 mb-4">Greška pri Verifikaciji</h1>
+				<p class="text-gray-600 mb-8">
+					Nismo u mogućnosti da verifikujemo vaš email. Verifikacioni link je možda istekao ili je već iskorišćen.
+					Pokušajte ponovo da se prijavite ili kontaktirajte našu podršku.
+				</p>
+				<a href="/login" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-md transition duration-300">
+					Nazad na prijavu
+				</a>
+			</div>
+		</body>
+	</html>
+}

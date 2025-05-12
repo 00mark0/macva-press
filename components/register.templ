@@ -1,0 +1,129 @@
+package components
+
+type RegisterErr string
+
+templ RegisterPage(registerErr RegisterErr) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>Registracija</title>
+			<meta name="description" content="Mačva Press Registracija"/>
+			<link rel="preload" href="/static/css/output.css" as="style"/>
+			<link rel="preload" href="/static/js/htmx.min.js" as="script"/>
+			<link href="/static/css/output.css" rel="stylesheet"/>
+			<script src="/static/js/htmx.min.js"></script>
+		</head>
+		<div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+			<div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+				<div class="text-center mb-8">
+					<img
+						src="/static/assets/macva-1-300x71.png"
+						alt="Mačva Press Logo"
+						class="w-48 h-28 mx-auto mb-4 rounded-lg"
+					/>
+					<h1 class="text-2xl font-bold text-gray-900">Registracija</h1>
+					<p class="text-gray-600 mt-2">Unesite podatke za vaš nalog.</p>
+				</div>
+				<div id="register-form">
+					@RegisterForm(registerErr)
+				</div>
+			</div>
+		</div>
+	</html>
+}
+
+templ RegisterForm(registerErr RegisterErr) {
+	<form class="space-y-6" hx-post="/api/register" hx-target="#register-form" hx-swap="innerHTML">
+		<div>
+			if string(registerErr) != "" {
+				<div
+					class="bg-red-100 border border-red-400 mb-4 text-center text-sm text-red-700 px-4 py-2 rounded relative"
+					role="alert"
+				>
+					<span class="block sm:inline">
+						{ string(registerErr) }
+					</span>
+				</div>
+			}
+			<label htmlFor="username" class="block text-sm font-medium text-gray-700 mb-1">
+				Korisničko ime
+			</label>
+			<input
+				id="username"
+				type="text"
+				name="username"
+				class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+				placeholder="korisničko ime"
+			/>
+		</div>
+		<div>
+			<label htmlFor="email" class="block text-sm font-medium text-gray-700 mb-1">
+				Email adresa
+			</label>
+			<input
+				id="email"
+				type="email"
+				name="email"
+				class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+				placeholder="ime@primer.com"
+			/>
+		</div>
+		<div>
+			<label htmlFor="password" class="block text-sm font-medium text-gray-700 mb-1">
+				Lozinka
+			</label>
+			<input
+				id="password"
+				type="password"
+				name="password"
+				class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+				placeholder="••••••••"
+			/>
+		</div>
+		<div>
+			<label htmlFor="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">
+				Potvrdite Lozinku
+			</label>
+			<input
+				id="confirmPassword"
+				type="password"
+				name="confirmPassword"
+				class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+				placeholder="••••••••"
+			/>
+		</div>
+		<button
+			type="submit"
+			class="cursor-pointer w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+		>
+			Napravi nalog
+		</button>
+		<a
+			href="/login"
+			class="block text-center w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+		>
+			Nazad na prijavu
+		</a>
+	</form>
+}
+
+templ RegisterSuccess() {
+	<div class="text-center">
+		<div class="bg-green-100 border border-green-400 mb-6 text-center text-sm text-green-700 px-4 py-3 rounded relative">
+			<span class="block sm:inline">
+				Registracija je uspešno završena!
+			</span>
+		</div>
+		<p class="text-gray-600 mb-6">
+			Link za potvrdu email-a je poslat na vašu email adresu.
+		</p>
+		<a
+			href="/login"
+			class="block w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+		>
+			Nazad na prijavu
+		</a>
+	</div>
+}

@@ -1,0 +1,37 @@
+/* static/css/style.css */
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+    font-family: 'Merriweather';
+    src: url('/static/fonts/Merriweather-VariableFont_opsz\,wdth\,wght.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+}
+
+/*html {
+    font-size: 18px;
+}*/
+
+body {
+    font-family: 'Merriweather', sans-serif;
+    font-weight: 500;
+    font-style: normal;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.3s ease-out forwards;
+}

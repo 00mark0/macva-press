@@ -1,0 +1,91 @@
+package components
+
+type RequestPassResetErr string
+
+templ RequestPassReset() {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>Zaboravljena lozinka</title>
+			<meta name="description" content="Mačva Press Zaboravljena lozinka"/>
+			<link rel="preload" href="/static/css/output.css" as="style"/>
+			<link rel="preload" href="/static/js/htmx.min.js" as="script"/>
+			<link href="/static/css/output.css" rel="stylesheet"/>
+			<script src="/static/js/htmx.min.js"></script>
+		</head>
+		<div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+			<div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+				<div class="text-center mb-8">
+					/*<svg viewBox="0 0 200 200" class="w-32 h-32 mx-auto mb-4" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<rect x="60" y="40" width="80" height="100" rx="8" fill="#e5e7eb"></rect>
+				<circle cx="80" cy="70" r="10" fill="#4b5563"></circle>
+				<circle cx="120" cy="70" r="10" fill="#4b5563"></circle>
+				<path d="M85 100 Q100 120 115 100" stroke="#4b5563" strokeWidth="4" fill="none" strokeLinecap="round">
+				</path>
+				<rect x="95" y="20" width="10" height="20" fill="#e5e7eb"></rect>
+				<circle cx="100" cy="15" r="8" fill="#3b82f6"></circle>
+				<rect x="70" y="140" width="60" height="40" rx="8" fill="#e5e7eb"></rect>
+				<circle cx="40" cy="60" r="6" fill="#3b82f6" opacity="0.3"></circle>
+				<circle cx="160" cy="100" r="8" fill="#3b82f6" opacity="0.3"></circle>
+				<circle cx="30" cy="140" r="4" fill="#3b82f6" opacity="0.3"></circle>
+			</svg>*/
+					<img
+						src="/static/assets/macva-1-300x71.png"
+						alt="Mačva Press Logo"
+						class="w-48 h-28 mx-auto mb-4 rounded-lg"
+					/>
+					<h1 class="text-2xl font-bold text-gray-900">Zaboravljena lozinka</h1>
+				</div>
+				<div id="req-pass-reset-form">
+					@RequestPassResetForm("")
+				</div>
+				<p class="mt-6 text-center text-sm text-gray-600">
+					Nemate nalog?
+					<a href="/register" class="text-blue-500 hover:text-blue-600 font-medium">
+						Registracija
+					</a>
+				</p>
+			</div>
+		</div>
+	</html>
+}
+
+templ RequestPassResetForm(requestPassResetErr RequestPassResetErr) {
+	<form class="space-y-6" hx-post="/api/send-password-reset-form" hx-target="#req-pass-reset-form" hx-swap="innerHTML">
+		<div>
+			if string(requestPassResetErr) != "" {
+				<div
+					class="bg-gray-100 border border-gray-400 mb-4 text-center text-sm text-gray-700 px-4 py-2 rounded relative"
+				>
+					<span class="block sm:inline">
+						{ string(requestPassResetErr) }
+					</span>
+				</div>
+			}
+			<label htmlFor="email" class="block text-sm font-medium text-gray-700 mb-1">
+				Email Adresa
+			</label>
+			<input
+				id="email"
+				type="email"
+				name="email"
+				class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+				placeholder="you@example.com"
+			/>
+		</div>
+		<button
+			type="submit"
+			class="cursor-pointer w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+		>
+			Pošalji Reset Link
+		</button>
+		<a
+			href="/"
+			class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+		>
+			Nazad na početnu
+		</a>
+	</form>
+}

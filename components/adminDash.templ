@@ -1,0 +1,15 @@
+package components
+
+import "github.com/00mark0/macva-press/db/services"
+
+templ AdminDashboard() {
+	<div class="w-full min-h-screen dark:bg-black sm:p-8 p-4">
+		<h1 class="text-3xl font-semibold text-black dark:text-white mb-10">Analitika</h1>
+		<div data-react-component="TrendingContent"></div>
+		<div data-react-component="DailyAnalytics"></div>
+	</div>
+}
+
+templ DashPage(props ...interface{}) {
+	@AdminLayout(props[0].(db.GetUserByIDRow), AdminDashboard())
+}
