@@ -16,9 +16,7 @@ const ContentCard = ({ item }) => (
 	>
 		<div className="p-4 flex flex-col flex-grow">
 			<h2 className="h-12 text-lg font-semibold text-black dark:text-white mb-2 truncate">{item.title}</h2>
-			<p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3 flex-grow">
-				{parse(item.content_description)}
-			</p>
+			<img src={item.thumbnail} alt={item.title} className="w-full max-h-48 object-fit" />
 
 			<div className="flex flex-wrap overflow-auto items-center justify-between text-sm text-gray-500 dark:text-gray-400 mt-auto">
 				<div className="flex space-x-4">

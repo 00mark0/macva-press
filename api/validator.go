@@ -1,7 +1,6 @@
 package api
 
 import (
-	"regexp"
 	"unicode"
 
 	"github.com/go-playground/validator/v10"
@@ -48,9 +47,13 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 
 // validCategoryName is a custom validation function for the "regex" tag
 var validCategoryName validator.Func = func(fl validator.FieldLevel) bool {
-	// Regex pattern: allow letters (both Latin and Cyrillic) and spaces
-	re := regexp.MustCompile(`^[A-Za-zА-Яа-яČčĆćŽž ]+$`)
-	return re.MatchString(fl.Field().String())
+	s := fl.Field().String()
+	for _, r := range s {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != ' ' && r != '.' {
+			return false
+		}
+	}
+	return true
 }
 
 // validPassword enforces strong password rules

@@ -11,6 +11,7 @@ services:
       - mp-redis
     volumes:
       - ./static/uploads:/app/static/uploads
+      - ./static/ads:/app/static/ads
 
   mp-db:
     image: ${DB_DRIVER}:latest

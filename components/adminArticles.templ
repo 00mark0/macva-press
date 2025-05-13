@@ -674,7 +674,7 @@ templ PublishedContent(nextLimit int, content []ListPublishedContentRes, url str
 								<td colspan="5">
 									<div
 										id={ "dropdown-" + fmt.Sprint(i) }
-										class="hidden w-full rounded-md bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm"
+										class="hidden max-h-96 w-full rounded-md bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm"
 									>
 										<div class="p-4">
 											<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -687,7 +687,7 @@ templ PublishedContent(nextLimit int, content []ListPublishedContentRes, url str
 													<div>
 														<p class="text-xs text-gray-500 dark:text-gray-400">Opis</p>
 														<p class="truncate text-sm text-gray-800 dark:text-gray-200 mt-1 line-clamp-3">
-															@utils.ParseHTML(v.ContentDescription)
+															{ utils.ParseHTMLToText(v.ContentDescription) }
 														</p>
 													</div>
 													<!-- Is Deleted -->
