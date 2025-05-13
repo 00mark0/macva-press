@@ -19,6 +19,7 @@ import (
 	"github.com/00mark0/macva-press/components"
 	"github.com/00mark0/macva-press/db/services"
 	"github.com/00mark0/macva-press/utils"
+	"github.com/a-h/templ"
 	"github.com/chai2010/webp"
 	"github.com/disintegration/imaging"
 	"github.com/google/uuid"
@@ -530,18 +531,28 @@ func (server *Server) deleteMedia(ctx echo.Context) error {
 }
 
 func (server *Server) listMediaForArticlePage(ctx echo.Context) error {
+	component, err := server.GenerateArticleMediaSliderComponent(ctx)
+	if err != nil {
+		log.Println("Error generating article media slider component in listMediaForArticlePage:", err)
+		return err
+	}
+
+	return Render(ctx, http.StatusOK, component)
+}
+
+func (server *Server) GenerateArticleMediaSliderComponent(ctx echo.Context) (templ.Component, error) {
 	articleIDStr := ctx.Param("id")
 	articleID, err := utils.ParseUUID(articleIDStr, "article ID")
 	if err != nil {
 		log.Println("Invalid article ID in listMediaForArticlePage:", err)
-		return err
+		return nil, err
 	}
 
 	media, err := server.store.ListMediaForContent(ctx.Request().Context(), articleID)
 	if err != nil {
 		log.Println("Error listing media for article in listMediaForArticlePage:", err)
-		return err
+		return nil, err
 	}
 
-	return Render(ctx, http.StatusOK, components.ArticleMediaSlider(media))
+	return components.ArticleMediaSlider(media), nil
 }

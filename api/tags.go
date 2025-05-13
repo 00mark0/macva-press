@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/a-h/templ"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
 
@@ -466,24 +467,34 @@ func (server *Server) listContentByTagsUnderCategory(ctx echo.Context) error {
 }
 
 func (server *Server) listAllContentByTag(ctx echo.Context) error {
+	component, err := server.GenerateRecentTagContentComponent(ctx)
+	if err != nil {
+		log.Println("Error generating component in listAllContentByTag:", err)
+		return err
+	}
+
+	return Render(ctx, http.StatusOK, component)
+}
+
+func (server *Server) GenerateRecentTagContentComponent(ctx echo.Context) (templ.Component, error) {
 	var req ListTagsReq
 
 	if err := ctx.Bind(&req); err != nil {
 		log.Println("Error binding request in listAllContentByTag:", err)
-		return err
+		return nil, err
 	}
 
 	tagIDStr := ctx.Param("id")
 	tagID, err := utils.ParseUUID(tagIDStr, "tag ID")
 	if err != nil {
 		log.Println("Invalid tag ID format in listAllContentByTag:", err)
-		return err
+		return nil, err
 	}
 
 	tag, err := server.store.GetTag(ctx.Request().Context(), tagID)
 	if err != nil {
 		log.Println("Error fetching tag in listAllContentByTag:", err)
-		return err
+		return nil, err
 	}
 
 	nextLimit := req.Limit + 9
@@ -496,7 +507,7 @@ func (server *Server) listAllContentByTag(ctx echo.Context) error {
 	content, err := server.store.ListContentByTagLimit(ctx.Request().Context(), arg)
 	if err != nil {
 		log.Println("Error fetching content by tag in listAllContentByTag:", err)
-		return err
+		return nil, err
 	}
 
 	for i := range content {
@@ -517,5 +528,6 @@ func (server *Server) listAllContentByTag(ctx echo.Context) error {
 		}
 	}
 
-	return Render(ctx, http.StatusOK, components.TagsGrid(tagIDStr, content, int(nextLimit), globalSettings[0]))
+	return components.TagsGrid(tagIDStr, content, int(nextLimit), globalSettings[0]), nil
+
 }

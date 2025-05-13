@@ -20,11 +20,11 @@ console.warn('No URL set for this sort option.');
 }
 }
 
-templ Article(content db.GetContentDetailsRow, globalSettings db.GlobalSetting, userReaction string, activeAds []db.Ad, canonical string) {
+templ Article(content db.GetContentDetailsRow, globalSettings db.GlobalSetting, userReaction string, activeAds []db.Ad, canonical string, articleMediaSliderComponent templ.Component) {
 	<article class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
 		<!-- Media Slider with shadow and rounded corners -->
-		<section id="article-page-media-slider" class="mb-8 rounded-xl overflow-hidden shadow-lg dark:shadow-gray-800" hx-get={ fmt.Sprintf("/api/content/media/%s", content.ContentID) } hx-trigger="load" hx-target="#article-page-media-slider" hx-swap="innerHTML">
-			@LoadingSpinner()
+		<section id="article-page-media-slider" class="mb-8 rounded-xl overflow-hidden shadow-lg dark:shadow-gray-800">
+			@InlineOrLazy(articleMediaSliderComponent)
 		</section>
 		<!-- Breadcrumb with improved spacing -->
 		<nav class="flex mb-6" aria-label="Breadcrumb">
@@ -84,7 +84,7 @@ templ Article(content db.GetContentDetailsRow, globalSettings db.GlobalSetting, 
 		for _, ad := range activeAds {
 			if ad.Placement.String == "article" {
 				<div class="lg:col-span-4 mt-6">
-					<a href={ templ.SafeURL(ad.TargetUrl.String) } target="_blank" class="mb-6 w-full">
+					<a href={ templ.SafeURL(ad.TargetUrl.String) } target="_blank" aria-label="Link for an advertisement" class="mb-6 w-full">
 						<img src={ ad.ImageUrl.String } alt={ ad.Description.String } onclick="sendAdClick()" class="object-fit mb-6 w-full h-64"/>
 					</a>
 				</div>
@@ -97,7 +97,7 @@ templ Article(content db.GetContentDetailsRow, globalSettings db.GlobalSetting, 
 		if content.CommentsEnabled && !globalSettings.DisableComments {
 			<!-- Comment Form -->
 			<div class="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-				<h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Dodajte komentar</h3>
+				<h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Dodajte komentar</h2>
 				<form hx-post={ fmt.Sprintf("/api/content/comments/%s", content.ContentID.String()) } hx-target="#article-comments" hx-swap="innerHTML" hx-on::after-request="if(event.detail.successful) this.reset()" class="space-y-4">
 					<div class="relative">
 						<textarea
@@ -130,7 +130,7 @@ templ Article(content db.GetContentDetailsRow, globalSettings db.GlobalSetting, 
 			<section id="article-comments" hx-get={ fmt.Sprintf("/api/content/comments/%s", content.ContentID.String()) } hx-trigger="load" hx-target="#article-comments" hx-swap="innerHTML" class="w-full">
 				@LoadingSpinner()
 			</section>
-			<script type="module">
+			<script type="module" defer>
 			  import { EmojiButton } from "https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@4.6.4/+esm";
 			  
 			  // Initialize emoji pickers for all buttons on page load and after any HTMX content loads
@@ -184,7 +184,7 @@ templ Article(content db.GetContentDetailsRow, globalSettings db.GlobalSetting, 
 			<div class="text-sm text-gray-500 dark:text-gray-400">Komentari su isključeni.</div>
 		}
 	</article>
-	<script>
+	<script defer>
 		function toggleCommentDropdown(button) {
 			const buttonId = button.id;
 	
@@ -426,7 +426,7 @@ templ Article(content db.GetContentDetailsRow, globalSettings db.GlobalSetting, 
 }
 
 templ ArticlePage(props ...interface{}) {
-	@Layout(props[0].(db.GetUserByIDRow), props[1].(Meta), props[2].([]db.Ad), props[3].([]db.Category), Article(props[4].(db.GetContentDetailsRow), props[5].(db.GlobalSetting), props[6].(string), props[7].([]db.Ad), props[8].(string)))
+	@Layout(props[0].(db.GetUserByIDRow), props[1].(Meta), props[2].([]db.Ad), props[3].([]db.Category), Article(props[4].(db.GetContentDetailsRow), props[5].(db.GlobalSetting), props[6].(string), props[7].([]db.Ad), props[8].(string), props[9].(templ.Component)))
 }
 
 templ ArticleMediaSlider(media []db.Medium) {
@@ -444,6 +444,7 @@ templ ArticleMediaSlider(media []db.Medium) {
 									<img
 										src={ medium.MediaUrl }
 										alt={ medium.MediaCaption }
+										fetchpriority="high"
 										class="w-full h-full object-contain cursor-zoom-in"
 										data-fullscreen="true"
 										data-index={ fmt.Sprint(i) }
@@ -506,13 +507,13 @@ templ ArticleMediaSlider(media []db.Medium) {
 			</div>
 		</div>
 		<!-- Fullscreen Overlay -->
-		<div id="fullscreen-overlay" class="fixed inset-0 bg-black/90 z-[999] hidden flex-col justify-center items-center">
+		<div id="fullscreen-overlay" class="fixed inset-0 bg-black/90 z-[999] hidden flex-col justify-center items-center" role="dialog" aria-modal="true" aria-label="Fullscreen image gallery">
 			<div class="fullscreen-toolbar absolute top-0 left-0 right-0 flex justify-between items-center p-4 bg-black/70">
-				<div class="text-white font-medium">
+				<div class="text-white font-medium" aria-live="polite">
 					<span id="fullscreen-counter">1</span>/<span id="fullscreen-total">{ fmt.Sprint(len(media)) }</span>
 				</div>
-				<button id="close-fullscreen" class="text-white hover:text-red-400 transition-colors">
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+				<button id="close-fullscreen" class="text-white hover:text-red-400 transition-colors" aria-label="Close fullscreen view">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
 					</svg>
 				</button>
@@ -534,13 +535,21 @@ templ ArticleMediaSlider(media []db.Medium) {
 				</div>
 			</div>
 			if len(media) > 1 {
-				<button id="fullscreen-prev" class="absolute left-0 sm:left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-3 text-white transition-all duration-200">
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+				<button
+					id="fullscreen-prev"
+					class="absolute left-0 sm:left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-3 text-white transition-all duration-200"
+					aria-label="Previous image"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
 					</svg>
 				</button>
-				<button id="fullscreen-next" class="absolute right-0 sm:right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-3 text-white transition-all duration-200">
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+				<button
+					id="fullscreen-next"
+					class="absolute right-0 sm:right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-3 text-white transition-all duration-200"
+					aria-label="Next image"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
 					</svg>
 				</button>
@@ -861,6 +870,7 @@ templ ArticleStats(v db.GetContentDetailsRow, globalSettings db.GlobalSetting, u
 			<div class="flex items-center space-x-2">
 				<button
 					id="likeButton"
+					aria-label="Like this article"
 					class={ templ.SafeClass(fmt.Sprintf("curor-pointer flex items-center space-x-1 py-1 px-3 rounded-full transition-colors %s", 
                         getReactionButtonClasses(userReaction, "like"))) }
 					hx-post={ fmt.Sprintf("/api/content/like/%s", v.ContentID) }
@@ -873,6 +883,7 @@ templ ArticleStats(v db.GetContentDetailsRow, globalSettings db.GlobalSetting, u
 				</button>
 				<button
 					id="dislikeButton"
+					aria-label="Dislike this article"
 					class={ templ.SafeClass(fmt.Sprintf("cursor-pointer flex items-center space-x-1 py-1 px-3 rounded-full transition-colors %s", 
                         getReactionButtonClasses(userReaction, "dislike"))) }
 					hx-post={ fmt.Sprintf("/api/content/dislike/%s", v.ContentID) }

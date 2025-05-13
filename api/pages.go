@@ -70,7 +70,14 @@ func (server *Server) homePage(ctx echo.Context) error {
 		return err
 	}
 
-	return Render(ctx, http.StatusOK, components.Index(userData, meta, activeAds, categories))
+	// Get the pre-rendered slider component
+	prerenderedSlider, err := server.GenerateNewsSliderComponent(ctx.Request().Context())
+	if err != nil {
+		return err
+	}
+
+	// Render the Index template with the pre-rendered slider
+	return Render(ctx, http.StatusOK, components.Index(userData, meta, activeAds, categories, prerenderedSlider))
 }
 
 // full page to be served
@@ -888,7 +895,13 @@ func (server *Server) categoriesPage(ctx echo.Context) error {
 		return err
 	}
 
-	return Render(ctx, http.StatusOK, components.CategoriesPage(userData, meta, activeAds, categories, category))
+	recentCatComponent, err := server.GenerateRecentCatContentComponent(ctx)
+	if err != nil {
+		log.Println("Error generating recent category component in categoriesPage:", err)
+		return err
+	}
+
+	return Render(ctx, http.StatusOK, components.CategoriesPage(userData, meta, activeAds, categories, category, recentCatComponent))
 }
 
 func (server *Server) tagPage(ctx echo.Context) error {
@@ -944,7 +957,13 @@ func (server *Server) tagPage(ctx echo.Context) error {
 		return err
 	}
 
-	return Render(ctx, http.StatusOK, components.TagsPage(userData, meta, activeAds, categories, tag))
+	recentTagsComponent, err := server.GenerateRecentTagContentComponent(ctx)
+	if err != nil {
+		log.Println("Error generating recent tags component in tagsPage:", err)
+		return err
+	}
+
+	return Render(ctx, http.StatusOK, components.TagsPage(userData, meta, activeAds, categories, tag, recentTagsComponent))
 }
 
 func getOrCreateAnonID(c echo.Context) (uuid.UUID, error) {
@@ -1094,7 +1113,13 @@ func (server *Server) articlePage(ctx echo.Context) error {
 		}
 	}
 
-	return Render(ctx, http.StatusOK, components.ArticlePage(userData, meta, activeAds, categories, article, globalSettings[0], userReaction, activeAds, meta.Canonical))
+	prerenderedArticleMediaSliderComponent, err := server.GenerateArticleMediaSliderComponent(ctx)
+	if err != nil {
+		log.Println("Error generating prerendered article media slider component in articlePage:", err)
+		return err
+	}
+
+	return Render(ctx, http.StatusOK, components.ArticlePage(userData, meta, activeAds, categories, article, globalSettings[0], userReaction, activeAds, meta.Canonical, prerenderedArticleMediaSliderComponent))
 }
 
 func (server *Server) userSettingsPage(ctx echo.Context) error {

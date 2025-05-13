@@ -8,6 +8,7 @@
     src: url('/static/fonts/Merriweather-VariableFont_opsz\,wdth\,wght.woff2') format('woff2');
     font-weight: 500;
     font-style: normal;
+    font-display: swap;
 }
 
 /*html {

@@ -79,17 +79,15 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 			<link rel="preload" href="/static/js/htmx.min.js" as="script"/>
 			<link rel="preload" href="/static/js/layout.js" as="script"/>
 			<link rel="preload" href="/static/js/dark-mode.js" as="script"/>
-			if len(activeAds) > 0 {
-				<link rel="preload" href={ activeAds[0].ImageUrl.String } as="image"/>
-			}
-			if len(activeAds) > 1 {
-				<link rel="preload" href={ activeAds[1].ImageUrl.String } as="image"/>
-			}
-			if len(activeAds) > 2 {
-				<link rel="preload" href={ activeAds[2].ImageUrl.String } as="image"/>
-			}
-			if len(activeAds) > 3 {
-				<link rel="preload" href={ activeAds[3].ImageUrl.String } as="image"/>
+			for i, ad := range activeAds {
+				if i >= 11 {
+					break
+				}
+				if ad.ImageUrl.Valid {
+					if !strings.Contains(ad.Description.String, "video") {
+						<link rel="preload" href={ ad.ImageUrl.String } as="image"/>
+					}
+				}
 			}
 			/* Stylesheets */
 			<link href="/static/css/output.css" rel="stylesheet"/>
@@ -103,7 +101,7 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 				<nav class="bg-white border-b border-gray-200 dark:border-gray-500 dark:bg-black shadow-sm">
 					<div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
 						<a href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
-							<img src="/static/assets/macva-1-300x71.png" width="220" class="h-14 rounded-lg" alt="Mačva Press Logo"/>
+							<img src="/static/assets/macva-1-300x71.png" class="w-44 sm:w-56 h-14 rounded-lg" alt="Mačva Press Logo"/>
 						</a>
 						<div class="flex items-center md:order-2">
 							<div class="flex items-center">
@@ -140,7 +138,7 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 										</li>
 									}
 									<li>
-										<a hx-post="/api/logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Odjavi se</a>
+										<button aria-label="Logout" hx-post="/api/logout" class="block w-full text-start px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Odjavi se</button>
 									</li>
 								</ul>
 							</div>
@@ -185,7 +183,7 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 					if ad.Placement.String == "header" {
 						<a href={ templ.SafeURL(ad.TargetUrl.String) } target="_blank" onclick="sendAdClick()" class="lg:col-span-4 mb-6 w-full">
 							<div class="lg:col-span-4 mb-6 w-full">
-								<img src={ ad.ImageUrl.String } alt={ ad.Description.String } class="object-fit mb-6 w-full h-64"/>
+								<img src={ ad.ImageUrl.String } alt={ ad.Description.String } aria-label="Link for an advertisement" fetchpriority="high" class="object-fit mb-6 w-full h-64"/>
 							</div>
 						</a>
 					}
@@ -204,7 +202,7 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 						for i := 1; i <= 8; i++ {
 							for _, ad := range activeAds {
 								if ad.Placement.String == fmt.Sprintf("sidebar-%d", i) {
-									<a href={ templ.SafeURL(ad.TargetUrl.String) } target="_blank" onclick="sendAdClick()" class="mb-6 w-full block">
+									<a href={ templ.SafeURL(ad.TargetUrl.String) } target="_blank" aria-label="Link for an advertisement" onclick="sendAdClick()" class="mb-6 w-full block">
 										if strings.Contains(strings.ToLower(ad.Description.String), "video") {
 											<video
 												src={ ad.ImageUrl.String }
@@ -218,6 +216,7 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 											<img
 												src={ ad.ImageUrl.String }
 												alt={ ad.Description.String }
+												fetchpriority="high"
 												class="w-full h-auto object-fit rounded"
 											/>
 										}
@@ -231,7 +230,7 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 				for _, ad := range activeAds {
 					if ad.Placement.String == "footer" {
 						<div class="lg:col-span-4 mt-6">
-							<a href={ templ.SafeURL(ad.TargetUrl.String) } target="_blank" onclick="sendAdClick()" class="mb-6 w-full">
+							<a href={ templ.SafeURL(ad.TargetUrl.String) } target="_blank" aria-label="Link for an advertisement" onclick="sendAdClick()" class="mb-6 w-full">
 								<img src={ ad.ImageUrl.String } alt={ ad.Description.String } class="object-fit mb-6 w-full h-64"/>
 							</a>
 						</div>
@@ -261,6 +260,7 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 									<a
 										href="#"
 										target="_blank"
+										aria-label="Link za Facebook"
 										class="text-gray-800 dark:text-gray-200 hover:text-primary-light flex items-center"
 									>
 										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 fill-current">
@@ -272,6 +272,7 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 									<a
 										href="#"
 										target="_blank"
+										aria-label="Link za Tik Tok"
 										class="text-gray-800 dark:text-gray-200 hover:text-primary-light flex items-center"
 									>
 										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 fill-current">
@@ -283,6 +284,7 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 									<a
 										href="https://www.instagram.com/dragan6263/"
 										target="_blank"
+										aria-label="Link za Instagram"
 										class="text-gray-800 dark:text-gray-200 hover:text-primary-light flex items-center"
 									>
 										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 fill-current">
@@ -294,6 +296,7 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 									<a
 										href="#"
 										target="_blank"
+										aria-label="Link za Youtube"
 										class="text-gray-800 dark:text-gray-200 hover:text-primary-light flex items-center"
 									>
 										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 fill-current">

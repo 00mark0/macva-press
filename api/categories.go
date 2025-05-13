@@ -7,6 +7,7 @@ import (
 	"github.com/00mark0/macva-press/components"
 	"github.com/00mark0/macva-press/db/services"
 	"github.com/00mark0/macva-press/utils"
+	"github.com/a-h/templ"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
@@ -189,24 +190,33 @@ func (server *Server) updateCategory(ctx echo.Context) error {
 }
 
 func (server *Server) listRecentCategoryContent(ctx echo.Context) error {
+	component, err := server.GenerateRecentCatContentComponent(ctx)
+	if err != nil {
+		return err
+	}
+
+	return Render(ctx, http.StatusOK, component)
+}
+
+func (server *Server) GenerateRecentCatContentComponent(ctx echo.Context) (templ.Component, error) {
 	var req ListPublishedLimitReq
 
 	if err := ctx.Bind(&req); err != nil {
 		log.Println("Error binding request in listRecentCategoryContent:", err)
-		return err
+		return nil, err
 	}
 
 	categoryIDStr := ctx.Param("id")
 	categoryID, err := utils.ParseUUID(categoryIDStr, "category ID")
 	if err != nil {
 		log.Println("Invalid category ID format in listRecentCategoryContent:", err)
-		return err
+		return nil, err
 	}
 
 	category, err := server.store.GetCategoryByID(ctx.Request().Context(), categoryID)
 	if err != nil {
 		log.Println("Error getting category in listRecentCategoryContent:", err)
-		return err
+		return nil, err
 	}
 
 	nextLimit := req.Limit + 9
@@ -219,7 +229,7 @@ func (server *Server) listRecentCategoryContent(ctx echo.Context) error {
 	data, err := server.store.ListContentByCategoryLimit(ctx.Request().Context(), arg)
 	if err != nil {
 		log.Println("Error listing content in listRecentCategoryContent:", err)
-		return err
+		return nil, err
 	}
 
 	// Convert DB content items to ContentData
@@ -258,12 +268,10 @@ func (server *Server) listRecentCategoryContent(ctx echo.Context) error {
 	globalSettings, err := server.store.GetGlobalSettings(ctx.Request().Context())
 	if err != nil {
 		log.Println("Error getting global settings in listRecentCategoryContent:", err)
-		return err
+		return nil, err
 	}
 
 	title := "Najnovije iz " + category.CategoryName
 
-	log.Println("len(content):", len(categoryContent))
-
-	return Render(ctx, http.StatusOK, components.RecentCategoryContent(categoryContent, globalSettings[0], int(nextLimit), title))
+	return components.RecentCategoryContent(categoryContent, globalSettings[0], int(nextLimit), title), nil
 }
