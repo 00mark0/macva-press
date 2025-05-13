@@ -3,14 +3,14 @@ services:
     build:
       target: prod
     container_name: macva-press
-    ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
     env_file:
       - .env
     restart: always
     depends_on:
       - mp-db
       - mp-redis
+    volumes:
+      - ./static/uploads:/app/static/uploads
 
   mp-db:
     image: ${DB_DRIVER}:latest
@@ -39,9 +39,40 @@ services:
       - redis_data:/data
     restart: unless-stopped
 
+  caddy:
+    image: caddy:latest
+    container_name: macva-press-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - mp-app
+    environment:
+      - TZ=Europe/Belgrade
+
+  duckdns:
+    image: linuxserver/duckdns
+    container_name: macva-press-duckdns
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Belgrade
+      - SUBDOMAINS=macva-press
+      - TOKEN=${DUCKDNS_TOKEN}
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
+  caddy_data:
+  caddy_config:
+  static_uploads:
+
 
 # docker compose -f docker-compose-prod.yml up --build -d
 

@@ -48,8 +48,8 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 
 // validCategoryName is a custom validation function for the "regex" tag
 var validCategoryName validator.Func = func(fl validator.FieldLevel) bool {
-	// Regex pattern: only letters and spaces
-	re := regexp.MustCompile(`^[A-Za-z ]+$`)
+	// Regex pattern: allow letters (both Latin and Cyrillic) and spaces
+	re := regexp.MustCompile(`^[A-Za-zА-Яа-яČčĆćŽž ]+$`)
 	return re.MatchString(fl.Field().String())
 }
 

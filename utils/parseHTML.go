@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -22,22 +23,34 @@ func (h HTMLComponent) Render(ctx context.Context, w io.Writer) error {
 	return err
 }
 
+// Regular expression to allow only YouTube iframe embeds
+var youtubeEmbedRegexp = regexp.MustCompile(`^https:\/\/(www\.)?(youtube\.com|youtu\.be)\/embed\/`)
+
 // ParseHTML sanitizes HTML and returns it as a templ.Component
 func ParseHTML(content string) templ.Component {
-	// Create a policy that allows common HTML elements and attributes
 	p := bluemonday.UGCPolicy()
 
-	// Allow all the elements and attributes that TinyMCE generates
 	p.AllowElements("h1", "h2", "h3", "h4", "h5", "h6", "p", "ul", "ol", "li",
-		"a", "img", "strong", "em", "blockquote", "hr", "div", "br")
+		"a", "img", "strong", "em", "blockquote", "hr", "div", "br", "iframe")
+
 	p.AllowAttrs("class", "data-start", "data-end").Globally()
 	p.AllowAttrs("href", "target", "rel").OnElements("a")
+	p.AllowAttrs("src").Matching(youtubeEmbedRegexp).OnElements("iframe")
+	p.AllowAttrs("width", "height", "frameborder", "allow", "allowfullscreen").OnElements("iframe")
 	p.AllowAttrs("src", "alt", "width", "height").OnElements("img")
 
-	// Sanitize the content
+	p.RequireParseableURLs(true)
+	p.AllowURLSchemes("https")
+	p.AllowRelativeURLs(true)
+	p.AddTargetBlankToFullyQualifiedLinks(true)
+
 	sanitized := p.Sanitize(content)
 
-	// Return as a custom component that implements templ.Component
+	// Add default sizing if not present
+	if strings.Contains(sanitized, "<iframe") {
+		sanitized = strings.ReplaceAll(sanitized, "<iframe", `<iframe width="100%" height="480"`)
+	}
+
 	return HTMLComponent{content: sanitized}
 }
 

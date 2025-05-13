@@ -150,11 +150,16 @@ func (server *Server) createAd(ctx echo.Context) error {
 		return err
 	}
 
-	convertedPath, err := ConvertToWebPWithResize(filePath, 800, 600, 80)
-	if err != nil {
-		log.Println("Error converting file to WebP in createAd:", err)
-	} else {
-		filePath = convertedPath
+	// Determine if uploaded file is an image before converting to WebP
+	isImage := strings.HasPrefix(file.Header.Get("Content-Type"), "image/")
+
+	if isImage {
+		convertedPath, err := ConvertToWebPWithResize(filePath, 800, 600, 80)
+		if err != nil {
+			log.Println("Error converting file to WebP in createAd:", err)
+		} else {
+			filePath = convertedPath
+		}
 	}
 
 	startDate, err := time.Parse("2006-01-02", req.StartDate)
@@ -272,13 +277,13 @@ func (server *Server) createAd(ctx echo.Context) error {
 		}
 	}
 
-	if len(activeAds) >= 4 && startDate.After(midnightNow) && startDate.Before(midnightNow.Add(24*time.Hour)) {
+	if len(activeAds) >= 11 && startDate.After(midnightNow) && startDate.Before(midnightNow.Add(24*time.Hour)) {
 		createAddErr = "Maksimalan broj aktivnih oglasa je 4."
 		ctx.Response().Header().Set("HX-Retarget", "#create-ad-modal")
 		return Render(ctx, http.StatusOK, components.CreateAdModal(createAddErr))
 	}
 
-	if len(scheduledAds) >= 4 && startDate.After(midnightNow.Add(24*time.Hour)) {
+	if len(scheduledAds) >= 11 && startDate.After(midnightNow.Add(24*time.Hour)) {
 		createAddErr = "Maksimalan broj zakazanih oglasa je 4."
 		ctx.Response().Header().Set("HX-Retarget", "#create-ad-modal")
 		return Render(ctx, http.StatusOK, components.CreateAdModal(createAddErr))
@@ -331,7 +336,7 @@ type UpdateAdReq struct {
 	Title       string `form:"title" validate:"required,min=3,max=50"`
 	Description string `form:"description" validate:"required,min=3,max=100"`
 	TargetUrl   string `form:"target_url" validate:"required,url"`
-	Placement   string `form:"placement" validate:"required,oneof=header sidebar footer article"`
+	Placement   string `form:"placement" validate:"required,oneof=header sidebar-1 sidebar-2 sidebar-3 sidebar-3 sidebar-4 sidebar-5 sidebar-6 sidebar-7 sidebar-8 footer article"`
 	Status      string `form:"status" validate:"required,oneof=active inactive"`
 	StartDate   string `form:"start_date" validate:"required"`
 	EndDate     string `form:"end_date" validate:"required"`
@@ -431,11 +436,16 @@ func (server *Server) updateAd(ctx echo.Context) error {
 			return err
 		}
 
-		convertedPath, err := ConvertToWebPWithResize(filePath, 800, 600, 80)
-		if err != nil {
-			log.Println("Error converting file to WebP in createAd:", err)
-		} else {
-			filePath = convertedPath
+		// Determine if uploaded file is an image before converting to WebP
+		isImage := strings.HasPrefix(file.Header.Get("Content-Type"), "image/")
+
+		if isImage {
+			convertedPath, err := ConvertToWebPWithResize(filePath, 800, 600, 80)
+			if err != nil {
+				log.Println("Error converting file to WebP in createAd:", err)
+			} else {
+				filePath = convertedPath
+			}
 		}
 
 		// Delete old image file if it's not the default image
@@ -578,13 +588,13 @@ func (server *Server) updateAd(ctx echo.Context) error {
 		}
 	}
 
-	if activeCount >= 4 && req.Status == "active" && startDate.After(midnightNow) && startDate.Before(midnightNow.Add(24*time.Hour)) {
+	if activeCount >= 11 && req.Status == "active" && startDate.After(midnightNow) && startDate.Before(midnightNow.Add(24*time.Hour)) {
 		updateAdErr = "Maksimalan broj aktivnih oglasa je 4."
 		ctx.Response().Header().Set("HX-Retarget", "#update-ad-modal")
 		return Render(ctx, http.StatusOK, components.UpdateAdModal(updateAdErr, existingAd))
 	}
 
-	if scheduledCount >= 4 && req.Status == "active" && startDate.After(midnightNow.Add(24*time.Hour)) {
+	if scheduledCount >= 11 && req.Status == "active" && startDate.After(midnightNow.Add(24*time.Hour)) {
 		updateAdErr = "Maksimalan broj zakazanih oglasa je 4."
 		ctx.Response().Header().Set("HX-Retarget", "#update-ad-modal")
 		return Render(ctx, http.StatusOK, components.UpdateAdModal(updateAdErr, existingAd))

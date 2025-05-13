@@ -454,7 +454,7 @@ templ CreateAdModal(err CreateAdErr) {
 								id="image_upload"
 								name="image_url"
 								type="file"
-								accept="image/*"
+								accept="image/*,video/*"
 								class="sr-only"
 							/>
 						</label>
@@ -484,7 +484,10 @@ templ CreateAdModal(err CreateAdErr) {
 					>
 						<option value="" disabled selected>Odaberite poziciju</option>
 						<option value="header">Header</option>
-						<option value="sidebar">Sidebar</option>
+						<!-- Additional sidebar positions -->
+						for i := 1; i <= 8; i++ {
+							<option value={ fmt.Sprintf("sidebar-%d", i) }>{ fmt.Sprintf("Sidebar %d", i) }</option>
+						}
 						<option value="footer">Footer</option>
 						<option value="article">Članak</option>
 					</select>
@@ -626,7 +629,7 @@ templ UpdateAdModal(err UpdateAdErr, ad db.Ad) {
 								id="image_upload"
 								name="image_url"
 								type="file"
-								accept="image/*"
+								accept="image/*,video/*"
 								value={ ad.ImageUrl.String }
 								class="sr-only"
 							/>
@@ -660,8 +663,13 @@ templ UpdateAdModal(err UpdateAdErr, ad db.Ad) {
 						if ad.Placement.String != "header" {
 							<option value="header">Header</option>
 						}
-						if ad.Placement.String != "sidebar" {
-							<option value="sidebar">Sidebar</option>
+						if strings.Contains(ad.Placement.String, "sidebar") {
+							<option value={ ad.Placement.String }>{ strings.ToUpper(ad.Placement.String[:1]) + ad.Placement.String[1:] }</option>
+						}
+						for i := 1; i <= 8; i++ {
+							if ad.Placement.String != fmt.Sprintf("sidebar-%d", i) {
+								<option value={ fmt.Sprintf("sidebar-%d", i) }>Sidebar { fmt.Sprint(i) }</option>
+							}
 						}
 						if ad.Placement.String != "footer" {
 							<option value="footer">Footer</option>

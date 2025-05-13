@@ -5,6 +5,7 @@ import "github.com/00mark0/macva-press/db/services"
 import "fmt"
 import "time"
 import "github.com/00mark0/macva-press/utils"
+import "strings"
 
 type Meta struct {
 	Title       string
@@ -67,15 +68,17 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 			if meta.Twitter.Creator != "" {
 				<meta name="twitter:creator" content={ meta.Twitter.Creator }/>
 			}
-			/* Favicon and App Icons (placeholders - replace with your actual paths) */
-			<link rel="icon" type="image/png" href="/static/favicon.png"/>
-			<link rel="apple-touch-icon" href="/static/apple-touch-icon.png"/>
+			<!-- Standard favicon -->
+			<link rel="icon" type="image/png" href="/static/assets/cropped-macvaLogo-32x32.png" sizes="32x32"/>
+			<!-- For Safari on macOS and iOS (optional but recommended) -->
+			<link rel="apple-touch-icon" href="/static/assets/macva-1-300x71.png" sizes="180x180"/>
+			<!-- For older IE (optional fallback) -->
+			<link rel="shortcut icon" href="/static/assets/cropped-macvaLogo-32x32.png"/>
 			/* Performance Optimizations */
 			<link rel="preload" href="/static/css/output.css" as="style"/>
 			<link rel="preload" href="/static/js/htmx.min.js" as="script"/>
 			<link rel="preload" href="/static/js/layout.js" as="script"/>
 			<link rel="preload" href="/static/js/dark-mode.js" as="script"/>
-			<link rel="preload" href="/static/js/sticky-ad.js" as="script"/>
 			if len(activeAds) > 0 {
 				<link rel="preload" href={ activeAds[0].ImageUrl.String } as="image"/>
 			}
@@ -94,7 +97,6 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 			<script src="/static/js/htmx.min.js" defer></script>
 			<script src="/static/js/layout.js" defer></script>
 			<script src="/static/js/dark-mode.js" defer></script>
-			<script src="/static/js/sticky-ad.js" defer></script>
 		</head>
 		<body class="bg-gray-50 dark:bg-black min-h-screen flex flex-col">
 			<div class="fixed top-0 left-0 w-full z-50">
@@ -196,17 +198,35 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 						}
 					</div>
 				</main>
-				for _, ad := range activeAds {
-					if ad.Placement.String == "sidebar" {
-						<aside class="lg:block lg:col-span-1">
-							<div id="sticky-ad-container" class="sticky-ad">
-								<a href={ templ.SafeURL(ad.TargetUrl.String) } target="_blank" onclick="sendAdClick()" class="mb-6 w-full">
-									<img src={ ad.ImageUrl.String } alt={ ad.Description.String } class="object-fit mb-6 w-full h-96"/>
-								</a>
-							</div>
-						</aside>
-					}
-				}
+				<!-- Sidebar - Create only ONE sidebar container -->
+				<aside class="lg:block lg:col-span-1">
+					<div id="sticky-ad-container" class="space-y-6">
+						for i := 1; i <= 8; i++ {
+							for _, ad := range activeAds {
+								if ad.Placement.String == fmt.Sprintf("sidebar-%d", i) {
+									<a href={ templ.SafeURL(ad.TargetUrl.String) } target="_blank" onclick="sendAdClick()" class="mb-6 w-full block">
+										if strings.Contains(strings.ToLower(ad.Description.String), "video") {
+											<video
+												src={ ad.ImageUrl.String }
+												autoplay
+												loop
+												muted
+												playsinline
+												class="w-full h-96 object-fit rounded"
+											></video>
+										} else {
+											<img
+												src={ ad.ImageUrl.String }
+												alt={ ad.Description.String }
+												class="w-full h-auto object-fit rounded"
+											/>
+										}
+									</a>
+								}
+							}
+						}
+					</div>
+				</aside>
 				<!-- Footer Ad Placement (Full Width) -->
 				for _, ad := range activeAds {
 					if ad.Placement.String == "footer" {
@@ -310,20 +330,7 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 					-ms-overflow-style: none;  /* IE and Edge */
 					scrollbar-width: none;  /* Firefox */
 				}
-
-				.sticky-ad {
-				 position: relative;
-				 transition: top 0.3s ease-in-out;
-				}
-  
-				/* Only apply sticky positioning on large screens */
-				@media (min-width: 1024px) {
-					.sticky-ad.is-sticky {
-					position: sticky;
-					top: 180px;
-					}
-                }
-			</style>
+				</style>
 		</body>
 	</html>
 }

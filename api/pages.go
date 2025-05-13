@@ -58,7 +58,7 @@ func (server *Server) homePage(ctx echo.Context) error {
 		},
 	}
 
-	activeAds, err := server.store.ListActiveAds(ctx.Request().Context(), 4)
+	activeAds, err := server.store.ListActiveAds(ctx.Request().Context(), 11)
 	if err != nil {
 		log.Println("Error listing active ads in homePage:", err)
 		return err
@@ -814,7 +814,7 @@ func (server *Server) searchResultsPage(ctx echo.Context) error {
 		},
 	}
 
-	activeAds, err := server.store.ListActiveAds(ctx.Request().Context(), 4)
+	activeAds, err := server.store.ListActiveAds(ctx.Request().Context(), 11)
 	if err != nil {
 		log.Println("Error listing active ads in homePage:", err)
 		return err
@@ -876,7 +876,7 @@ func (server *Server) categoriesPage(ctx echo.Context) error {
 		},
 	}
 
-	activeAds, err := server.store.ListActiveAds(ctx.Request().Context(), 4)
+	activeAds, err := server.store.ListActiveAds(ctx.Request().Context(), 11)
 	if err != nil {
 		log.Println("Error listing active ads in homePage:", err)
 		return err
@@ -932,7 +932,7 @@ func (server *Server) tagPage(ctx echo.Context) error {
 		},
 	}
 
-	activeAds, err := server.store.ListActiveAds(ctx.Request().Context(), 4)
+	activeAds, err := server.store.ListActiveAds(ctx.Request().Context(), 11)
 	if err != nil {
 		log.Println("Error listing active ads in homePage:", err)
 		return err
@@ -1063,7 +1063,7 @@ func (server *Server) articlePage(ctx echo.Context) error {
 		},
 	}
 
-	activeAds, err := server.store.ListActiveAds(ctx.Request().Context(), 4)
+	activeAds, err := server.store.ListActiveAds(ctx.Request().Context(), 11)
 	if err != nil {
 		log.Println("Error listing active ads in homePage:", err)
 		return err
@@ -1130,7 +1130,7 @@ func (server *Server) userSettingsPage(ctx echo.Context) error {
 		},
 	}
 
-	activeAds, err := server.store.ListActiveAds(ctx.Request().Context(), 4)
+	activeAds, err := server.store.ListActiveAds(ctx.Request().Context(), 11)
 	if err != nil {
 		log.Println("Error listing active ads in homePage:", err)
 		return err

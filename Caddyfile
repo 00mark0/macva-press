@@ -1,0 +1,4 @@
+macva-press.duckdns.org {
+    reverse_proxy mp-app:3000
+}
+

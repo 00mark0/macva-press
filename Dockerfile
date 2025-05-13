@@ -42,6 +42,9 @@ FROM base AS builder
 # Run Tailwind to generate production-ready CSS before building the Go binary
 RUN apk add --no-cache libwebp-dev
 RUN make prod/tailwind
+# 🔧 Install Templ CLI and regenerate templates
+RUN go install github.com/a-h/templ/cmd/templ@latest
+RUN templ generate
 # Build the Go binary (add any production build flags if desired)
 RUN go build -o app
 RUN npm run build

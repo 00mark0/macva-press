@@ -100,7 +100,7 @@ func (server *Server) login(ctx echo.Context) error {
 			return err
 		}
 
-		verifyEmailLink := fmt.Sprintf("http://localhost:3000/potvrdi-email/%s", token)
+		verifyEmailLink := fmt.Sprintf("%s/potvrdi-email/%s", BaseUrl, token)
 
 		err = utils.SendEmailVerificationEmail(req.Email, verifyEmailLink)
 		if err != nil {

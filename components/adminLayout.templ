@@ -13,6 +13,12 @@ templ AdminLayout(payload db.GetUserByIDRow, children ...templ.Component) {
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<title>Mačva Press - Admin Panel</title>
 			<meta name="description" content="Mačva Press Admin Panel"/>
+			<!-- Standard favicon -->
+			<link rel="icon" type="image/png" href="/static/assets/cropped-macvaLogo-32x32.png" sizes="32x32"/>
+			<!-- For Safari on macOS and iOS (optional but recommended) -->
+			<link rel="apple-touch-icon" href="/static/assets/macva-1-300x71.png" sizes="180x180"/>
+			<!-- For older IE (optional fallback) -->
+			<link rel="shortcut icon" href="/static/assets/cropped-macvaLogo-32x32.png"/>
 			<link rel="preload" href="/static/css/output.css" as="style"/>
 			<link rel="preload" href="/static/js/htmx.min.js" as="script"/>
 			<link rel="preload" href="/static/js/dark-mode.js" as="script"/>
