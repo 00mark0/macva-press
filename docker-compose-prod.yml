@@ -5,7 +5,7 @@ services:
     container_name: macva-press
     env_file:
       - .env
-    restart: always
+    restart: unless-stopped
     depends_on:
       - mp-db
       - mp-redis
@@ -15,7 +15,7 @@ services:
 
   mp-db:
     image: ${DB_DRIVER}:latest
-    restart: always
+    restart: unless-stopped
     container_name: macva-press-db
     environment:
       POSTGRES_USER: ${DB_USER}
