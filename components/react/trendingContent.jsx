@@ -18,7 +18,7 @@ const ContentCard = ({ item }) => (
 			<h2 className="h-12 text-lg font-semibold text-black dark:text-white mb-2 truncate">{item.title}</h2>
 			<img src={item.thumbnail} alt={item.title} className="w-full max-h-48 object-fit" />
 
-			<div className="flex flex-wrap overflow-auto items-center justify-between text-sm text-gray-500 dark:text-gray-400 mt-auto">
+			<div className="mt-3 flex flex-wrap overflow-auto items-center justify-between text-sm text-gray-500 dark:text-gray-400">
 				<div className="flex space-x-4">
 					<span className="flex items-center">
 						<svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

@@ -1,5 +1,5 @@
 services:
-  mp-app-dev:
+  mp-app:
     build:
       target: dev  # explicitly build the dev stage
     container_name: macva-press
@@ -13,7 +13,7 @@ services:
     depends_on:
       - mp-db-dev
 
-  mp-db-dev:
+  mp-db:
     image: ${DB_DRIVER}:latest
     container_name: macva-press-db
     environment:
@@ -26,7 +26,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   
-  mp-redis-dev:
+  mp-redis:
     image: redis:latest
     container_name: macva-press-redis
     ports:

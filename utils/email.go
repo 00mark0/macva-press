@@ -37,12 +37,12 @@ func SendPasswordResetEmail(recipient, resetLink string) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", username)
 	m.SetHeader("To", recipient)
-	m.SetHeader("Subject", "Mačva News - Resetovanje Lozinke")
+	m.SetHeader("Subject", "Mačva Press - Resetovanje Lozinke")
 
 	// HTML body with a button that links to the reset page
 	htmlBody := `
 	<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-		<img src="https://your-domain.com/static/assets/macva-news-logo-cropped.jpeg" alt="Mačva News Logo" style="width: 200px; height: auto; margin-bottom: 20px;" />
+		<img src="https://macva-press.duckdns.org/static/assets/macva-1-300x71.png" alt="Mačva Press Logo" style="width: 200px; height: auto; margin-bottom: 20px;" />
 		<h2>Zahtev za resetovanje lozinke</h2>
 		<p>Primili smo zahtev za resetovanje lozinke za vaš nalog. Kliknite na dugme ispod da biste resetovali lozinku:</p>
 		<p style="margin: 30px 0;">
@@ -51,7 +51,7 @@ func SendPasswordResetEmail(recipient, resetLink string) error {
 		<p>Ako niste zatražili resetovanje lozinke, molimo vas da ignorišete ovu poruku.</p>
 		<p>Ovaj link će isteći za 1 sat.</p>
 		<hr style="margin: 30px 0; border: none; border-top: 1px solid #eaeaea;" />
-		<p style="font-size: 12px; color: #666;">Mačva News Tim</p>
+		<p style="font-size: 12px; color: #666;">Mačva Press Tim</p>
 	</div>
 	`
 	m.SetBody("text/html", htmlBody)
@@ -80,21 +80,21 @@ func SendEmailVerificationEmail(recipient, verificationLink string) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", username)
 	m.SetHeader("To", recipient)
-	m.SetHeader("Subject", "Mačva News - Verifikacija Email Adrese")
+	m.SetHeader("Subject", "Mačva Press - Verifikacija Email Adrese")
 
 	// HTML body with a button that links to the verification page
 	htmlBody := `
 	<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-		<img src="https://your-domain.com/static/assets/macva-news-logo-cropped.jpeg" alt="Mačva News Logo" style="width: 200px; height: auto; margin-bottom: 20px;" />
+		<img src="https://macva-press.duckdns.org/static/assets/macva-1-300x71.png" alt="Mačva Press Logo" style="width: 200px; height: auto; margin-bottom: 20px;" />
 		<h2>Verifikacija email adrese</h2>
-		<p>Hvala što ste se registrovali na Mačva News portal. Da biste aktivirali svoj nalog, kliknite na dugme ispod:</p>
+		<p>Hvala što ste se registrovali na Mačva Press portal. Da biste aktivirali svoj nalog, kliknite na dugme ispod:</p>
 		<p style="margin: 30px 0;">
 			<a href="` + verificationLink + `" style="background-color: #3B82F6; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verifikuj Email</a>
 		</p>
 		<p>Ako niste kreirali nalog na našem portalu, molimo vas da ignorišete ovu poruku.</p>
 		<p>Ovaj link će isteći za 24 sata.</p>
 		<hr style="margin: 30px 0; border: none; border-top: 1px solid #eaeaea;" />
-		<p style="font-size: 12px; color: #666;">Mačva News Tim</p>
+		<p style="font-size: 12px; color: #666;">Mačva Press Tim</p>
 	</div>
 	`
 	m.SetBody("text/html", htmlBody)
