@@ -278,13 +278,13 @@ func (server *Server) createAd(ctx echo.Context) error {
 	}
 
 	if len(activeAds) >= 11 && startDate.After(midnightNow) && startDate.Before(midnightNow.Add(24*time.Hour)) {
-		createAddErr = "Maksimalan broj aktivnih oglasa je 4."
+		createAddErr = "Maksimalan broj aktivnih oglasa je 11."
 		ctx.Response().Header().Set("HX-Retarget", "#create-ad-modal")
 		return Render(ctx, http.StatusOK, components.CreateAdModal(createAddErr))
 	}
 
 	if len(scheduledAds) >= 11 && startDate.After(midnightNow.Add(24*time.Hour)) {
-		createAddErr = "Maksimalan broj zakazanih oglasa je 4."
+		createAddErr = "Maksimalan broj zakazanih oglasa je 11."
 		ctx.Response().Header().Set("HX-Retarget", "#create-ad-modal")
 		return Render(ctx, http.StatusOK, components.CreateAdModal(createAddErr))
 	}
