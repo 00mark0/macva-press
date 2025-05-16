@@ -47,14 +47,14 @@ func (server *Server) homePage(ctx echo.Context) error {
 			Description: "Pouzdane, tačne i pravovremene informacije o događajima u Mačvi i regionu.",
 			URL:         BaseUrl, // Update with your actual domain
 			Type:        "website",
-			Image:       "/static/assets/macva-1-300x71.png", // Prepare an Open Graph image
+			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Prepare an Open Graph image
 		},
 		Twitter: components.TwitterCardMeta{
 			Card:        "summary_large_image",
 			Title:       "Mačva Press | Prava vest u pravo vreme",
 			Description: "Najnovije lokalne i regionalne vesti iz Mačve – obavešteni, povezani, korak ispred.",
-			Image:       "/static/assets/macva-1-300x71.png", // Prepare a Twitter card image
-			Creator:     "@MacvaNews",                        // Optional: your Twitter handle
+			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Prepare a Twitter card image
+			Creator:     "@MacvaNews",                                  // Optional: your Twitter handle
 		},
 	}
 
@@ -810,14 +810,14 @@ func (server *Server) searchResultsPage(ctx echo.Context) error {
 			Description: "Pronađite relevantne vesti iz Mačve i Srbije pomoću naše pretrage.",
 			URL:         BaseUrl + "/pretraga", // Updated for the search page URL
 			Type:        "website",
-			Image:       "/static/assets/macva-1-300x71.png", // Use the same image
+			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Use the same image
 		},
 		Twitter: components.TwitterCardMeta{
 			Card:        "summary_large_image",
 			Title:       "Mačva Press | Pretraga vesti u Mačvi i Srbiji",
 			Description: "Pretražujte najnovije vesti i informacije iz Mačve sa jednostavnim pretraživačem.",
-			Image:       "/static/assets/macva-1-300x71.png", // Use the same image
-			Creator:     "@MacvaNews",                        // Optional: your Twitter handle
+			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Use the same image
+			Creator:     "@MacvaNews",                                  // Optional: your Twitter handle
 		},
 	}
 
@@ -872,14 +872,14 @@ func (server *Server) categoriesPage(ctx echo.Context) error {
 			Description: "Pregledajte vesti iz različitih kategorija i pratite najvažnije teme iz Mačve i Srbije.",
 			URL:         BaseUrl + "/kategorije/" + utils.Slugify(category.CategoryName) + "/" + categoryIDStr, // Ažurirano za URL stranice kategorija
 			Type:        "website",
-			Image:       "/static/assets/macva-1-300x71.png", // Koristi istu sliku
+			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Koristi istu sliku
 		},
 		Twitter: components.TwitterCardMeta{
 			Card:        "summary_large_image",
 			Title:       "Mačva Press | " + category.CategoryName,
 			Description: "Pronađite najnovije vesti razvrstane po kategorijama i budite u toku sa aktuelnim dešavanjima.",
-			Image:       "/static/assets/macva-1-300x71.png", // Koristi istu sliku
-			Creator:     "@MacvaNews",                        // Opcionalno: vaš Twitter nalog
+			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Koristi istu sliku
+			Creator:     "@MacvaNews",                                  // Opcionalno: vaš Twitter nalog
 		},
 	}
 
@@ -934,14 +934,14 @@ func (server *Server) tagPage(ctx echo.Context) error {
 			Description: "Pregledajte vesti iz različitih oznaka i pratite najvažnije teme iz Mačve i Srbije.",
 			URL:         BaseUrl + "/kategorije/" + utils.Slugify(tag.TagName) + "/" + tagIDStr, // Ažurirano za URL stranice kategorija
 			Type:        "website",
-			Image:       "/static/assets/macva-1-300x71.png", // Koristi istu sliku
+			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Koristi istu sliku
 		},
 		Twitter: components.TwitterCardMeta{
 			Card:        "summary_large_image",
 			Title:       "Mačva Press | " + tag.TagName,
 			Description: "Pronađite najnovije vesti razvrstane po oznakama i budite u toku sa aktuelnim dešavanjima.",
-			Image:       "/static/assets/macva-1-300x71.png", // Koristi istu sliku
-			Creator:     "@MacvaNews",                        // Opcionalno: vaš Twitter nalog
+			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Koristi istu sliku
+			Creator:     "@MacvaNews",                                  // Opcionalno: vaš Twitter nalog
 		},
 	}
 
@@ -1071,14 +1071,14 @@ func (server *Server) articlePage(ctx echo.Context) error {
 			Description: utils.GenerateMetaDescription(article.ContentDescription),
 			URL:         BaseUrl + "/" + utils.Slugify(utils.GenerateTitleTag(article.Title)) + "/" + articleIDStr, // Ažurirano za URL stranice kategorija
 			Type:        "website",
-			Image:       article.Thumbnail.String, // Koristi istu sliku
+			Image:       BaseUrl + article.Thumbnail.String, // Koristi istu sliku
 		},
 		Twitter: components.TwitterCardMeta{
 			Card:        "summary_large_image",
 			Title:       utils.GenerateTitleTag(article.Title),
 			Description: utils.GenerateMetaDescription(article.ContentDescription),
-			Image:       article.Thumbnail.String, // Koristi istu sliku
-			Creator:     "@MacvaNews",             // Opcionalno: vaš Twitter nalog
+			Image:       BaseUrl + article.Thumbnail.String, // Koristi istu sliku
+			Creator:     "@MacvaNews",                       // Opcionalno: vaš Twitter nalog
 		},
 	}
 
@@ -1144,14 +1144,14 @@ func (server *Server) userSettingsPage(ctx echo.Context) error {
 			Description: "Korisnička Podešavanja",
 			URL:         BaseUrl + "/" + "podesavanja", // Ažurirano za URL stranice kategorija
 			Type:        "website",
-			Image:       "/static/assets/macva-1-300x71.png", // Koristi istu sliku
+			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Koristi istu sliku
 		},
 		Twitter: components.TwitterCardMeta{
 			Card:        "summary_large_image",
 			Title:       "Mačva Press | Korisnička Podešavanja",
 			Description: "Korisnička Podešavanja",
-			Image:       "/static/assets/macva-1-300x71.png", // Koristi istu sliku
-			Creator:     "@MacvaNews",                        // Opcionalno: vaš Twitter nalog
+			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Koristi istu sliku
+			Creator:     "@MacvaNews",                                  // Opcionalno: vaš Twitter nalog
 		},
 	}
 
