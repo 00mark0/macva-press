@@ -14,6 +14,22 @@ func (server *Server) setupRouter() {
 
 	router.Use(middleware.Gzip())
 
+	router.Use(middleware.SecureWithConfig(middleware.SecureConfig{
+		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval';",
+		XFrameOptions:         "DENY",
+		XSSProtection:         "1; mode=block",
+	}))
+
+	// Add custom middleware to set HSTS and other headers
+	router.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			res := c.Response()
+			res.Header().Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+			res.Header().Set("X-Content-Type-Options", "nosniff")
+			return next(c)
+		}
+	})
+
 	// Create rate limiters for different types of operations
 	// For authentication - very strict limits to prevent brute force attacks
 	authLimiter, err := CreateRateLimiter("10-M") // 10 requests per minute

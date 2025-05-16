@@ -919,11 +919,14 @@ func (server *Server) createContent(ctx echo.Context) error {
 	}
 
 	ctx.SetCookie(&http.Cookie{
-		Name:    "content_id",
-		Value:   content.ContentID.String(),
-		MaxAge:  60 * 60 * 24 * 365,
-		Path:    "/",
-		Expires: time.Now().Add(time.Hour),
+		Name:     "content_id",
+		Value:    content.ContentID.String(),
+		MaxAge:   60 * 60 * 24 * 365,
+		Path:     "/",
+		Expires:  time.Now().Add(time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
 	})
 
 	message := "Uspešno ste sačuvali novi sadržaj."
@@ -994,11 +997,14 @@ func (server *Server) createAndPublishContent(ctx echo.Context) error {
 	}
 
 	ctx.SetCookie(&http.Cookie{
-		Name:    "content_id",
-		Value:   content.ContentID.String(),
-		MaxAge:  60 * 60 * 24 * 365,
-		Path:    "/",
-		Expires: time.Now().Add(time.Hour),
+		Name:     "content_id",
+		Value:    content.ContentID.String(),
+		MaxAge:   60 * 60 * 24 * 365,
+		Path:     "/",
+		Expires:  time.Now().Add(time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
 	})
 
 	message := "Uspešno ste sačuvali i objavili novi sadržaj."

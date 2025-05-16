@@ -198,6 +198,8 @@ func (server *Server) login(ctx echo.Context) error {
 		Expires:  time.Now().Add(duration),
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
 	})
 
 	ctx.SetCookie(&http.Cookie{
@@ -206,6 +208,8 @@ func (server *Server) login(ctx echo.Context) error {
 		Expires:  time.Now().Add(refreshTokenDuration),
 		Path:     "/",
 		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+		Secure:   true,
 	})
 
 	ctx.SetCookie(&http.Cookie{
@@ -214,6 +218,8 @@ func (server *Server) login(ctx echo.Context) error {
 		Expires:  time.Now().Add(refreshTokenDuration),
 		Path:     "/",
 		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+		Secure:   true,
 	})
 
 	ctx.Response().Header().Set("HX-Redirect", "/")

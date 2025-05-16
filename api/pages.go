@@ -644,10 +644,13 @@ func (server *Server) updateArticlePage(ctx echo.Context) error {
 	}
 
 	ctx.SetCookie(&http.Cookie{
-		Name:   "content_id",
-		Value:  contentIDStr,
-		Path:   "/",
-		MaxAge: 0,
+		Name:     "content_id",
+		Value:    contentIDStr,
+		Path:     "/",
+		MaxAge:   0,
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
 	})
 
 	return Render(ctx, http.StatusOK, components.UpdateArticle(content, categories, media, tags, contentTags))
@@ -983,6 +986,7 @@ func getOrCreateAnonID(c echo.Context) (uuid.UUID, error) {
 		HttpOnly: true,
 		Expires:  time.Now().Add(20 * 365 * 24 * time.Hour), // 20 years
 		SameSite: http.SameSiteStrictMode,
+		Secure:   true,
 	}
 	c.SetCookie(newCookie)
 	return newAnonID, nil
