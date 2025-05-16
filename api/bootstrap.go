@@ -42,3 +42,24 @@ func BootstrapAdmin(store *db.Store) error {
 	log.Printf("Admin user created with ID %v", admin.UserID)
 	return nil
 }
+
+func BootstrapGlobalSettings(store *db.Store) error {
+	ctx := context.Background()
+
+	exists, err := store.CheckGlobalSettingsExists(ctx)
+	if err != nil {
+		return fmt.Errorf("check global settings existence failed: %w", err)
+	}
+	if exists {
+		log.Println("Global settings already exist.")
+		return nil
+	}
+
+	globalSettings, err := store.CreateGlobalSettings(ctx)
+	if err != nil {
+		return fmt.Errorf("create global settings failed: %w", err)
+	}
+
+	log.Printf("Global settings created with ID %v", globalSettings.GlobalSettingsID)
+	return nil
+}

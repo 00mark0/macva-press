@@ -57,6 +57,11 @@ func main() {
 		log.Fatal("Bootstrap failed:", err)
 	}
 
+	// Ensure global settings row exists before starting the server
+	if err := api.BootstrapGlobalSettings(store); err != nil {
+		log.Fatal("Bootstrap global settings failed:", err)
+	}
+
 	// Pass both store and Redis client into the server
 	server, err := api.NewServer(store, symmetricKey, redis.Client)
 	if err != nil {

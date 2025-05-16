@@ -26,3 +26,8 @@ SET
     "disable_ads" = false
 WHERE "global_settings_id" = (SELECT "global_settings_id" FROM "global_settings" LIMIT 1);
 
+-- name: CheckGlobalSettingsExists :one
+SELECT EXISTS (
+  SELECT 1
+  FROM global_settings
+);

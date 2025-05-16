@@ -42,7 +42,6 @@ func SendPasswordResetEmail(recipient, resetLink string) error {
 	// HTML body with a button that links to the reset page
 	htmlBody := `
 	<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-		<img src="https://macva-press.duckdns.org/static/assets/macva-1-300x71.png" alt="Mačva Press Logo" style="width: 200px; height: auto; margin-bottom: 20px;" />
 		<h2>Zahtev za resetovanje lozinke</h2>
 		<p>Primili smo zahtev za resetovanje lozinke za vaš nalog. Kliknite na dugme ispod da biste resetovali lozinku:</p>
 		<p style="margin: 30px 0;">
@@ -85,7 +84,6 @@ func SendEmailVerificationEmail(recipient, verificationLink string) error {
 	// HTML body with a button that links to the verification page
 	htmlBody := `
 	<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-		<img src="https://macva-press.duckdns.org/static/assets/macva-1-300x71.png" alt="Mačva Press Logo" style="width: 200px; height: auto; margin-bottom: 20px;" />
 		<h2>Verifikacija email adrese</h2>
 		<p>Hvala što ste se registrovali na Mačva Press portal. Da biste aktivirali svoj nalog, kliknite na dugme ispod:</p>
 		<p style="margin: 30px 0;">

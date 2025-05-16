@@ -9,6 +9,20 @@ import (
 	"context"
 )
 
+const checkGlobalSettingsExists = `-- name: CheckGlobalSettingsExists :one
+SELECT EXISTS (
+  SELECT 1
+  FROM global_settings
+)
+`
+
+func (q *Queries) CheckGlobalSettingsExists(ctx context.Context) (bool, error) {
+	row := q.db.QueryRow(ctx, checkGlobalSettingsExists)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createGlobalSettings = `-- name: CreateGlobalSettings :one
 INSERT INTO "global_settings" ("disable_comments", "disable_likes", "disable_dislikes", "disable_views", "disable_ads")
 VALUES (false, false, true, false, false)
