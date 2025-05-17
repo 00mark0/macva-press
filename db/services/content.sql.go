@@ -115,6 +115,18 @@ func (q *Queries) CreateContent(ctx context.Context, arg CreateContentParams) (C
 	return i, err
 }
 
+const decrementCommentCount = `-- name: DecrementCommentCount :exec
+UPDATE content
+SET
+  comment_count = comment_count - 1
+WHERE content_id = $1
+`
+
+func (q *Queries) DecrementCommentCount(ctx context.Context, contentID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, decrementCommentCount, contentID)
+	return err
+}
+
 const deleteContentReaction = `-- name: DeleteContentReaction :one
 DELETE FROM content_reaction
 WHERE content_id = $1 AND user_id = $2

@@ -607,6 +607,12 @@ func (server *Server) deleteComment(ctx echo.Context) error {
 		return err
 	}
 
+	err = server.store.DecrementCommentCount(ctx.Request().Context(), commentID)
+	if err != nil {
+		log.Println("Error decrementing comment count in deleteComment:", err)
+		return err
+	}
+
 	err = server.decrementDailyComments(ctx)
 	if err != nil {
 		log.Println(err)
