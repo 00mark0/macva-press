@@ -32,7 +32,7 @@ RETURNING
 -- name: DeleteComment :one
 DELETE FROM comment
 WHERE comment_id = $1
-RETURNING comment_id;
+RETURNING *;
 
 -- name: ListContentComments :many
 SELECT

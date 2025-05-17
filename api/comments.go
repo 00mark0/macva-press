@@ -601,13 +601,13 @@ func (server *Server) deleteComment(ctx echo.Context) error {
 		return err
 	}
 
-	_, err = server.store.DeleteComment(ctx.Request().Context(), commentID)
+	comment, err := server.store.DeleteComment(ctx.Request().Context(), commentID)
 	if err != nil {
 		log.Println("Error deleting comment:", err)
 		return err
 	}
 
-	err = server.store.DecrementCommentCount(ctx.Request().Context(), commentID)
+	err = server.store.DecrementCommentCount(ctx.Request().Context(), comment.ContentID)
 	if err != nil {
 		log.Println("Error decrementing comment count in deleteComment:", err)
 		return err

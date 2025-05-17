@@ -78,14 +78,24 @@ func (q *Queries) CreateReply(ctx context.Context, arg CreateReplyParams) (Comme
 const deleteComment = `-- name: DeleteComment :one
 DELETE FROM comment
 WHERE comment_id = $1
-RETURNING comment_id
+RETURNING comment_id, content_id, user_id, comment_text, score, created_at, updated_at, is_deleted, parent_comment_id
 `
 
-func (q *Queries) DeleteComment(ctx context.Context, commentID pgtype.UUID) (pgtype.UUID, error) {
+func (q *Queries) DeleteComment(ctx context.Context, commentID pgtype.UUID) (Comment, error) {
 	row := q.db.QueryRow(ctx, deleteComment, commentID)
-	var comment_id pgtype.UUID
-	err := row.Scan(&comment_id)
-	return comment_id, err
+	var i Comment
+	err := row.Scan(
+		&i.CommentID,
+		&i.ContentID,
+		&i.UserID,
+		&i.CommentText,
+		&i.Score,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IsDeleted,
+		&i.ParentCommentID,
+	)
+	return i, err
 }
 
 const deleteCommentReaction = `-- name: DeleteCommentReaction :one
