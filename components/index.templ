@@ -12,6 +12,7 @@ type ContentData struct {
 	CategoryID          pgtype.UUID
 	CategoryName        string
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -264,7 +265,7 @@ templ ArticleCardSlider(article db.ListContentByCategoryRow, globalSettings db.G
 		<div class="group relative bg-white shadow-md border-b-2 border-gray-200 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-gray-800 flex flex-col h-full w-full" style="z-index: 10;">
 			if article.Thumbnail.Valid && article.Thumbnail.String != "" {
 				<div class="relative w-full h-full aspect-video overflow-hidden">
-					<a href={ templ.SafeURL(fmt.Sprintf("/%s/%s", utils.Slugify(utils.GenerateTitleTag(article.Title)), article.ContentID)) } class="block h-full w-full relative">
+					<a href={ templ.SafeURL(utils.PrettyURL(article.Slug, article.PublishedAt.Time)) } class="block h-full w-full relative">
 						<img
 							src={ article.Thumbnail.String }
 							alt={ article.Title }
@@ -342,7 +343,7 @@ templ GridCards(content []ContentData, globalSettings db.GlobalSetting, nextLimi
 			<article class="group relative bg-white shadow-md border-b-2 border-gray-200 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 overflow-hidden dark:bg-gray-800 flex flex-col h-[364px]" style="z-index: 10;">
 				<div class="flex flex-col h-full">
 					<!-- Image Container - Fixed height -->
-					<a href={ templ.SafeURL(fmt.Sprintf("%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID)) }>
+					<a href={ templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAt.Time)) }>
 						<div class="relative w-full h-48">
 							if v.Thumbnail.Valid && v.Thumbnail.String != "" {
 								<img
@@ -360,7 +361,7 @@ templ GridCards(content []ContentData, globalSettings db.GlobalSetting, nextLimi
 					<div class="px-4 pt-2 relative flex-grow flex flex-col justify-between z-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
 						<div class="absolute top-0 left-0 w-1 h-full bg-gray-800 group-hover:bg-blue-600 transition-colors duration-300"></div>
 						<!-- Top content section -->
-						<a href={ templ.SafeURL(fmt.Sprintf("%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID)) }>
+						<a href={ templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAt.Time)) }>
 							<div>
 								<div class="flex justify-between items-center text-xs text-gray-600 dark:text-gray-300 mb-2 space-x-2">
 									<span class="dark:text-gray-300">{ utils.TimeAgo(v.PublishedAt.Time) }</span>
@@ -472,6 +473,7 @@ templ CategoriesWithContent(content []ContentDataSlice, globalSettings db.Global
 type ContentByTag struct {
 	TagID   string
 	TagName string
+	Slug    string
 	Content []db.ListContentByTagRow
 }
 

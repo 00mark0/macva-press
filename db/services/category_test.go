@@ -12,7 +12,10 @@ import (
 )
 
 func createCategoryInteractive(name string) Category {
-	category, err := testQueries.CreateCategory(context.Background(), name)
+	category, err := testQueries.CreateCategory(context.Background(), CreateCategoryParams{
+		CategoryName: name,
+		Slug:         utils.Slugify(name),
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,7 +48,12 @@ func TestCreateCategory(t *testing.T) {
 }
 
 func TestGetCategory(t *testing.T) {
-	category1, err := testQueries.CreateCategory(context.Background(), utils.RandomCategory())
+	randomCategoryName := utils.RandomCategory()
+
+	category1, err := testQueries.CreateCategory(context.Background(), CreateCategoryParams{
+		CategoryName: randomCategoryName,
+		Slug:         utils.Slugify(randomCategoryName),
+	})
 	require.NoError(t, err)
 
 	category2, err := testQueries.GetCategory(context.Background(), category1.CategoryID)
@@ -55,7 +63,11 @@ func TestGetCategory(t *testing.T) {
 }
 
 func TestGetCategoryByName(t *testing.T) {
-	category1, err := testQueries.CreateCategory(context.Background(), utils.RandomString(10))
+	randomCategoryName := utils.RandomCategory()
+	category1, err := testQueries.CreateCategory(context.Background(), CreateCategoryParams{
+		CategoryName: randomCategoryName,
+		Slug:         utils.Slugify(randomCategoryName),
+	})
 	require.NoError(t, err)
 
 	category2, err := testQueries.GetCategoryByName(context.Background(), category1.CategoryName)
@@ -77,7 +89,12 @@ func TestListCategories(t *testing.T) {
 }
 
 func TestUpdateCategory(t *testing.T) {
-	category1, err := testQueries.CreateCategory(context.Background(), utils.RandomString(10))
+	randomCategoryName := utils.RandomCategory()
+
+	category1, err := testQueries.CreateCategory(context.Background(), CreateCategoryParams{
+		CategoryName: randomCategoryName,
+		Slug:         utils.Slugify(randomCategoryName),
+	})
 	require.NoError(t, err)
 
 	arg := UpdateCategoryParams{
@@ -92,7 +109,12 @@ func TestUpdateCategory(t *testing.T) {
 }
 
 func TestDeleteCategory(t *testing.T) {
-	category1, err := testQueries.CreateCategory(context.Background(), utils.RandomString(10))
+	randomCategoryName := utils.RandomCategory()
+
+	category1, err := testQueries.CreateCategory(context.Background(), CreateCategoryParams{
+		CategoryName: randomCategoryName,
+		Slug:         utils.Slugify(randomCategoryName),
+	})
 
 	count1, err := testQueries.ListCategories(context.Background(), 20)
 	require.NoError(t, err)

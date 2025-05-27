@@ -11,7 +11,10 @@ import (
 )
 
 func createTagInteractive(name string) Tag {
-	tag, err := testQueries.CreateTag(context.Background(), name)
+	tag, err := testQueries.CreateTag(context.Background(), CreateTagParams{
+		TagName: name,
+		Slug:    utils.Slugify(name),
+	})
 	if err != nil {
 		log.Println(err)
 	}
@@ -20,7 +23,12 @@ func createTagInteractive(name string) Tag {
 }
 
 func createRandomTag(t *testing.T) Tag {
-	tag, err := testQueries.CreateTag(context.Background(), Loremipsumgen.Word())
+	randomTagName := Loremipsumgen.Word()
+
+	tag, err := testQueries.CreateTag(context.Background(), CreateTagParams{
+		TagName: randomTagName,
+		Slug:    utils.Slugify(randomTagName),
+	})
 	require.NoError(t, err)
 	require.NotEmpty(t, tag)
 

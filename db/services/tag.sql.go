@@ -27,15 +27,20 @@ func (q *Queries) AddTagToContent(ctx context.Context, arg AddTagToContentParams
 }
 
 const createTag = `-- name: CreateTag :one
-INSERT INTO tag (tag_name)
-VALUES ($1)
-RETURNING tag_id, tag_name
+INSERT INTO tag (tag_name, slug)
+VALUES ($1, $2)
+RETURNING tag_id, tag_name, slug
 `
 
-func (q *Queries) CreateTag(ctx context.Context, tagName string) (Tag, error) {
-	row := q.db.QueryRow(ctx, createTag, tagName)
+type CreateTagParams struct {
+	TagName string
+	Slug    string
+}
+
+func (q *Queries) CreateTag(ctx context.Context, arg CreateTagParams) (Tag, error) {
+	row := q.db.QueryRow(ctx, createTag, arg.TagName, arg.Slug)
 	var i Tag
-	err := row.Scan(&i.TagID, &i.TagName)
+	err := row.Scan(&i.TagID, &i.TagName, &i.Slug)
 	return i, err
 }
 
@@ -55,7 +60,7 @@ func (q *Queries) DeleteTag(ctx context.Context, tagID pgtype.UUID) error {
 }
 
 const getTag = `-- name: GetTag :one
-SELECT tag_id, tag_name
+SELECT tag_id, tag_name, slug
 FROM tag
 WHERE tag_id = $1
 `
@@ -63,12 +68,25 @@ WHERE tag_id = $1
 func (q *Queries) GetTag(ctx context.Context, tagID pgtype.UUID) (Tag, error) {
 	row := q.db.QueryRow(ctx, getTag, tagID)
 	var i Tag
-	err := row.Scan(&i.TagID, &i.TagName)
+	err := row.Scan(&i.TagID, &i.TagName, &i.Slug)
+	return i, err
+}
+
+const getTagBySlug = `-- name: GetTagBySlug :one
+SELECT tag_id, tag_name, slug
+FROM tag
+WHERE slug = $1
+`
+
+func (q *Queries) GetTagBySlug(ctx context.Context, slug string) (Tag, error) {
+	row := q.db.QueryRow(ctx, getTagBySlug, slug)
+	var i Tag
+	err := row.Scan(&i.TagID, &i.TagName, &i.Slug)
 	return i, err
 }
 
 const getTagsByContent = `-- name: GetTagsByContent :many
-SELECT tag.tag_id, tag.tag_name
+SELECT tag.tag_id, tag.tag_name, tag.slug
 FROM tag
 JOIN content_tag ct ON tag.tag_id = ct.tag_id
 WHERE ct.content_id = $1
@@ -83,7 +101,7 @@ func (q *Queries) GetTagsByContent(ctx context.Context, contentID pgtype.UUID) (
 	var items []Tag
 	for rows.Next() {
 		var i Tag
-		if err := rows.Scan(&i.TagID, &i.TagName); err != nil {
+		if err := rows.Scan(&i.TagID, &i.TagName, &i.Slug); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -95,7 +113,7 @@ func (q *Queries) GetTagsByContent(ctx context.Context, contentID pgtype.UUID) (
 }
 
 const getUniqueTagsByCategoryID = `-- name: GetUniqueTagsByCategoryID :many
-SELECT DISTINCT t.tag_id, t.tag_name
+SELECT DISTINCT t.tag_id, t.tag_name, t.slug
 FROM tag t
 JOIN content_tag ct ON t.tag_id = ct.tag_id
 JOIN content c ON ct.content_id = c.content_id
@@ -114,7 +132,7 @@ func (q *Queries) GetUniqueTagsByCategoryID(ctx context.Context, categoryID pgty
 	var items []Tag
 	for rows.Next() {
 		var i Tag
-		if err := rows.Scan(&i.TagID, &i.TagName); err != nil {
+		if err := rows.Scan(&i.TagID, &i.TagName, &i.Slug); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -126,7 +144,7 @@ func (q *Queries) GetUniqueTagsByCategoryID(ctx context.Context, categoryID pgty
 }
 
 const listTags = `-- name: ListTags :many
-SELECT tag_id, tag_name
+SELECT tag_id, tag_name, slug
 FROM tag
 ORDER BY tag_name ASC
 LIMIT $1
@@ -141,7 +159,7 @@ func (q *Queries) ListTags(ctx context.Context, limit int32) ([]Tag, error) {
 	var items []Tag
 	for rows.Next() {
 		var i Tag
-		if err := rows.Scan(&i.TagID, &i.TagName); err != nil {
+		if err := rows.Scan(&i.TagID, &i.TagName, &i.Slug); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -168,7 +186,7 @@ func (q *Queries) RemoveTagFromContent(ctx context.Context, arg RemoveTagFromCon
 }
 
 const searchTags = `-- name: SearchTags :many
-SELECT tag_id, tag_name
+SELECT tag_id, tag_name, slug
 FROM tag
 WHERE lower(tag_name) LIKE lower($2::text)
 ORDER BY tag_name ASC
@@ -189,7 +207,7 @@ func (q *Queries) SearchTags(ctx context.Context, arg SearchTagsParams) ([]Tag, 
 	var items []Tag
 	for rows.Next() {
 		var i Tag
-		if err := rows.Scan(&i.TagID, &i.TagName); err != nil {
+		if err := rows.Scan(&i.TagID, &i.TagName, &i.Slug); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -202,19 +220,21 @@ func (q *Queries) SearchTags(ctx context.Context, arg SearchTagsParams) ([]Tag, 
 
 const updateTag = `-- name: UpdateTag :one
 UPDATE tag
-SET tag_name = $1
-WHERE tag_id = $2
-RETURNING tag_id, tag_name
+SET tag_name = $1,
+    slug = $2
+WHERE tag_id = $3
+RETURNING tag_id, tag_name, slug
 `
 
 type UpdateTagParams struct {
 	TagName string
+	Slug    string
 	TagID   pgtype.UUID
 }
 
 func (q *Queries) UpdateTag(ctx context.Context, arg UpdateTagParams) (Tag, error) {
-	row := q.db.QueryRow(ctx, updateTag, arg.TagName, arg.TagID)
+	row := q.db.QueryRow(ctx, updateTag, arg.TagName, arg.Slug, arg.TagID)
 	var i Tag
-	err := row.Scan(&i.TagID, &i.TagName)
+	err := row.Scan(&i.TagID, &i.TagName, &i.Slug)
 	return i, err
 }

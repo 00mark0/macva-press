@@ -17,7 +17,7 @@ SET
     thumbnail = $2,
     updated_at = now()
 WHERE content_id = $1
-RETURNING content_id, user_id, category_id, title, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
+RETURNING content_id, user_id, category_id, title, slug, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
 `
 
 type AddThumbnailParams struct {
@@ -33,6 +33,7 @@ func (q *Queries) AddThumbnail(ctx context.Context, arg AddThumbnailParams) (Con
 		&i.UserID,
 		&i.CategoryID,
 		&i.Title,
+		&i.Slug,
 		&i.Thumbnail,
 		&i.ContentDescription,
 		&i.CommentsEnabled,
@@ -57,21 +58,23 @@ INSERT INTO content (
     user_id,
     category_id,
     title,
+    slug,
     content_description,
     comments_enabled,
     view_count_enabled,
     like_count_enabled,
     dislike_count_enabled
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8
+    $1, $2, $3, $4, $5, $6, $7, $8, $9
 )
-RETURNING content_id, user_id, category_id, title, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
+RETURNING content_id, user_id, category_id, title, slug, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
 `
 
 type CreateContentParams struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	ContentDescription  string
 	CommentsEnabled     bool
 	ViewCountEnabled    bool
@@ -84,6 +87,7 @@ func (q *Queries) CreateContent(ctx context.Context, arg CreateContentParams) (C
 		arg.UserID,
 		arg.CategoryID,
 		arg.Title,
+		arg.Slug,
 		arg.ContentDescription,
 		arg.CommentsEnabled,
 		arg.ViewCountEnabled,
@@ -96,6 +100,7 @@ func (q *Queries) CreateContent(ctx context.Context, arg CreateContentParams) (C
 		&i.UserID,
 		&i.CategoryID,
 		&i.Title,
+		&i.Slug,
 		&i.Thumbnail,
 		&i.ContentDescription,
 		&i.CommentsEnabled,
@@ -241,6 +246,83 @@ func (q *Queries) GetContentByCategoryCount(ctx context.Context, categoryID pgty
 	return count, err
 }
 
+const getContentBySlug = `-- name: GetContentBySlug :one
+SELECT
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  u.username,
+  cat.category_name,
+  (
+    SELECT array_agg(t.tag_name)::text[]
+    FROM content_tag ct
+    JOIN tag t ON ct.tag_id = t.tag_id
+    WHERE ct.content_id = c.content_id
+  ) AS tags
+FROM content c
+JOIN "user" u ON c.user_id = u.user_id
+JOIN category cat ON c.category_id = cat.category_id
+WHERE c.slug = $1
+  AND c.is_deleted = false
+  AND c.status = 'published'
+LIMIT 1
+`
+
+type GetContentBySlugRow struct {
+	ContentID           pgtype.UUID
+	UserID              pgtype.UUID
+	CategoryID          pgtype.UUID
+	Title               string
+	Slug                string
+	Thumbnail           pgtype.Text
+	ContentDescription  string
+	CommentsEnabled     bool
+	ViewCountEnabled    bool
+	LikeCountEnabled    bool
+	DislikeCountEnabled bool
+	Status              string
+	ViewCount           int32
+	LikeCount           int32
+	DislikeCount        int32
+	CommentCount        int32
+	CreatedAt           pgtype.Timestamptz
+	UpdatedAt           pgtype.Timestamptz
+	PublishedAt         pgtype.Timestamptz
+	IsDeleted           pgtype.Bool
+	Username            string
+	CategoryName        string
+	Tags                []string
+}
+
+func (q *Queries) GetContentBySlug(ctx context.Context, slug string) (GetContentBySlugRow, error) {
+	row := q.db.QueryRow(ctx, getContentBySlug, slug)
+	var i GetContentBySlugRow
+	err := row.Scan(
+		&i.ContentID,
+		&i.UserID,
+		&i.CategoryID,
+		&i.Title,
+		&i.Slug,
+		&i.Thumbnail,
+		&i.ContentDescription,
+		&i.CommentsEnabled,
+		&i.ViewCountEnabled,
+		&i.LikeCountEnabled,
+		&i.DislikeCountEnabled,
+		&i.Status,
+		&i.ViewCount,
+		&i.LikeCount,
+		&i.DislikeCount,
+		&i.CommentCount,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PublishedAt,
+		&i.IsDeleted,
+		&i.Username,
+		&i.CategoryName,
+		&i.Tags,
+	)
+	return i, err
+}
+
 const getContentByTagCount = `-- name: GetContentByTagCount :one
 SELECT count(DISTINCT c.content_id)
 FROM content c
@@ -260,7 +342,7 @@ func (q *Queries) GetContentByTagCount(ctx context.Context, tagName string) (int
 
 const getContentDetails = `-- name: GetContentDetails :one
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name,
   (
@@ -280,6 +362,7 @@ type GetContentDetailsRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -308,6 +391,7 @@ func (q *Queries) GetContentDetails(ctx context.Context, contentID pgtype.UUID) 
 		&i.UserID,
 		&i.CategoryID,
 		&i.Title,
+		&i.Slug,
 		&i.Thumbnail,
 		&i.ContentDescription,
 		&i.CommentsEnabled,
@@ -391,7 +475,7 @@ func (q *Queries) GetSearchContentCount(ctx context.Context, searchTerm string) 
 const hardDeleteContent = `-- name: HardDeleteContent :one
 DELETE FROM content
 WHERE content_id = $1
-RETURNING content_id, user_id, category_id, title, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
+RETURNING content_id, user_id, category_id, title, slug, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
 `
 
 func (q *Queries) HardDeleteContent(ctx context.Context, contentID pgtype.UUID) (Content, error) {
@@ -402,6 +486,7 @@ func (q *Queries) HardDeleteContent(ctx context.Context, contentID pgtype.UUID) 
 		&i.UserID,
 		&i.CategoryID,
 		&i.Title,
+		&i.Slug,
 		&i.Thumbnail,
 		&i.ContentDescription,
 		&i.CommentsEnabled,
@@ -471,7 +556,7 @@ func (q *Queries) InsertOrUpdateContentReaction(ctx context.Context, arg InsertO
 
 const listContentByCategory = `-- name: ListContentByCategory :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -495,6 +580,7 @@ type ListContentByCategoryRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -528,6 +614,7 @@ func (q *Queries) ListContentByCategory(ctx context.Context, arg ListContentByCa
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -558,7 +645,7 @@ func (q *Queries) ListContentByCategory(ctx context.Context, arg ListContentByCa
 
 const listContentByCategoryLimit = `-- name: ListContentByCategoryLimit :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username
 FROM content c
 JOIN "user" u ON c.user_id = u.user_id
@@ -579,6 +666,7 @@ type ListContentByCategoryLimitRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -611,6 +699,7 @@ func (q *Queries) ListContentByCategoryLimit(ctx context.Context, arg ListConten
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -640,7 +729,7 @@ func (q *Queries) ListContentByCategoryLimit(ctx context.Context, arg ListConten
 
 const listContentByTag = `-- name: ListContentByTag :many
 SELECT DISTINCT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -666,6 +755,7 @@ type ListContentByTagRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -699,6 +789,7 @@ func (q *Queries) ListContentByTag(ctx context.Context, arg ListContentByTagPara
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -729,7 +820,7 @@ func (q *Queries) ListContentByTag(ctx context.Context, arg ListContentByTagPara
 
 const listContentByTagLimit = `-- name: ListContentByTagLimit :many
 SELECT DISTINCT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -754,6 +845,7 @@ type ListContentByTagLimitRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -787,6 +879,7 @@ func (q *Queries) ListContentByTagLimit(ctx context.Context, arg ListContentByTa
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -817,7 +910,7 @@ func (q *Queries) ListContentByTagLimit(ctx context.Context, arg ListContentByTa
 
 const listDeletedContent = `-- name: ListDeletedContent :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -833,6 +926,7 @@ type ListDeletedContentRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -866,6 +960,7 @@ func (q *Queries) ListDeletedContent(ctx context.Context, limit int32) ([]ListDe
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -896,7 +991,7 @@ func (q *Queries) ListDeletedContent(ctx context.Context, limit int32) ([]ListDe
 
 const listDeletedContentOldest = `-- name: ListDeletedContentOldest :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -912,6 +1007,7 @@ type ListDeletedContentOldestRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -945,6 +1041,7 @@ func (q *Queries) ListDeletedContentOldest(ctx context.Context, limit int32) ([]
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -975,7 +1072,7 @@ func (q *Queries) ListDeletedContentOldest(ctx context.Context, limit int32) ([]
 
 const listDeletedContentTitle = `-- name: ListDeletedContentTitle :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -991,6 +1088,7 @@ type ListDeletedContentTitleRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -1024,6 +1122,7 @@ func (q *Queries) ListDeletedContentTitle(ctx context.Context, limit int32) ([]L
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -1054,7 +1153,7 @@ func (q *Queries) ListDeletedContentTitle(ctx context.Context, limit int32) ([]L
 
 const listDraftContent = `-- name: ListDraftContent :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -1071,6 +1170,7 @@ type ListDraftContentRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -1104,6 +1204,7 @@ func (q *Queries) ListDraftContent(ctx context.Context, limit int32) ([]ListDraf
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -1134,7 +1235,7 @@ func (q *Queries) ListDraftContent(ctx context.Context, limit int32) ([]ListDraf
 
 const listDraftContentOldest = `-- name: ListDraftContentOldest :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -1151,6 +1252,7 @@ type ListDraftContentOldestRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -1184,6 +1286,7 @@ func (q *Queries) ListDraftContentOldest(ctx context.Context, limit int32) ([]Li
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -1214,7 +1317,7 @@ func (q *Queries) ListDraftContentOldest(ctx context.Context, limit int32) ([]Li
 
 const listDraftContentTitle = `-- name: ListDraftContentTitle :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -1231,6 +1334,7 @@ type ListDraftContentTitleRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -1264,6 +1368,7 @@ func (q *Queries) ListDraftContentTitle(ctx context.Context, limit int32) ([]Lis
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -1294,7 +1399,7 @@ func (q *Queries) ListDraftContentTitle(ctx context.Context, limit int32) ([]Lis
 
 const listPublishedContent = `-- name: ListPublishedContent :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -1316,6 +1421,7 @@ type ListPublishedContentRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -1349,6 +1455,7 @@ func (q *Queries) ListPublishedContent(ctx context.Context, arg ListPublishedCon
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -1379,7 +1486,7 @@ func (q *Queries) ListPublishedContent(ctx context.Context, arg ListPublishedCon
 
 const listPublishedContentLimit = `-- name: ListPublishedContentLimit :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -1396,6 +1503,7 @@ type ListPublishedContentLimitRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -1429,6 +1537,7 @@ func (q *Queries) ListPublishedContentLimit(ctx context.Context, limit int32) ([
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -1459,7 +1568,7 @@ func (q *Queries) ListPublishedContentLimit(ctx context.Context, limit int32) ([
 
 const listPublishedContentLimitOldest = `-- name: ListPublishedContentLimitOldest :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -1476,6 +1585,7 @@ type ListPublishedContentLimitOldestRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -1509,6 +1619,7 @@ func (q *Queries) ListPublishedContentLimitOldest(ctx context.Context, limit int
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -1539,7 +1650,7 @@ func (q *Queries) ListPublishedContentLimitOldest(ctx context.Context, limit int
 
 const listPublishedContentLimitTitle = `-- name: ListPublishedContentLimitTitle :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -1556,6 +1667,7 @@ type ListPublishedContentLimitTitleRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -1589,6 +1701,7 @@ func (q *Queries) ListPublishedContentLimitTitle(ctx context.Context, limit int3
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -1618,7 +1731,7 @@ func (q *Queries) ListPublishedContentLimitTitle(ctx context.Context, limit int3
 }
 
 const listRelatedContent = `-- name: ListRelatedContent :many
-SELECT c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted
+SELECT c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted
 FROM content c
 WHERE c.content_id <> $1
   AND c.status = 'published'
@@ -1657,6 +1770,7 @@ func (q *Queries) ListRelatedContent(ctx context.Context, arg ListRelatedContent
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -1685,7 +1799,7 @@ func (q *Queries) ListRelatedContent(ctx context.Context, arg ListRelatedContent
 
 const listTrendingContent = `-- name: ListTrendingContent :many
 SELECT 
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   cat.category_name,
   (c.view_count + c.like_count + c.comment_count) AS total_interactions
 FROM content c
@@ -1707,6 +1821,7 @@ type ListTrendingContentRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -1740,6 +1855,7 @@ func (q *Queries) ListTrendingContent(ctx context.Context, arg ListTrendingConte
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -1775,7 +1891,7 @@ SET
     published_at = now(),
     updated_at = now()
 WHERE content_id = $1
-RETURNING content_id, user_id, category_id, title, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
+RETURNING content_id, user_id, category_id, title, slug, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
 `
 
 func (q *Queries) PublishContent(ctx context.Context, contentID pgtype.UUID) (Content, error) {
@@ -1786,6 +1902,7 @@ func (q *Queries) PublishContent(ctx context.Context, contentID pgtype.UUID) (Co
 		&i.UserID,
 		&i.CategoryID,
 		&i.Title,
+		&i.Slug,
 		&i.Thumbnail,
 		&i.ContentDescription,
 		&i.CommentsEnabled,
@@ -1807,7 +1924,7 @@ func (q *Queries) PublishContent(ctx context.Context, contentID pgtype.UUID) (Co
 
 const searchContent = `-- name: SearchContent :many
 SELECT DISTINCT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -1837,6 +1954,7 @@ type SearchContentRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -1870,6 +1988,7 @@ func (q *Queries) SearchContent(ctx context.Context, arg SearchContentParams) ([
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -1900,7 +2019,7 @@ func (q *Queries) SearchContent(ctx context.Context, arg SearchContentParams) ([
 
 const searchDelContent = `-- name: SearchDelContent :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -1925,6 +2044,7 @@ type SearchDelContentRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -1958,6 +2078,7 @@ func (q *Queries) SearchDelContent(ctx context.Context, arg SearchDelContentPara
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -1988,7 +2109,7 @@ func (q *Queries) SearchDelContent(ctx context.Context, arg SearchDelContentPara
 
 const searchDraftContent = `-- name: SearchDraftContent :many
 SELECT
-  c.content_id, c.user_id, c.category_id, c.title, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
+  c.content_id, c.user_id, c.category_id, c.title, c.slug, c.thumbnail, c.content_description, c.comments_enabled, c.view_count_enabled, c.like_count_enabled, c.dislike_count_enabled, c.status, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.created_at, c.updated_at, c.published_at, c.is_deleted,
   u.username,
   cat.category_name
 FROM content c
@@ -2014,6 +2135,7 @@ type SearchDraftContentRow struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -2047,6 +2169,7 @@ func (q *Queries) SearchDraftContent(ctx context.Context, arg SearchDraftContent
 			&i.UserID,
 			&i.CategoryID,
 			&i.Title,
+			&i.Slug,
 			&i.Thumbnail,
 			&i.ContentDescription,
 			&i.CommentsEnabled,
@@ -2082,7 +2205,7 @@ SET
     published_at = null,
     updated_at = now()
 WHERE content_id = $1
-RETURNING content_id, user_id, category_id, title, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
+RETURNING content_id, user_id, category_id, title, slug, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
 `
 
 func (q *Queries) SoftDeleteContent(ctx context.Context, contentID pgtype.UUID) (Content, error) {
@@ -2093,6 +2216,7 @@ func (q *Queries) SoftDeleteContent(ctx context.Context, contentID pgtype.UUID) 
 		&i.UserID,
 		&i.CategoryID,
 		&i.Title,
+		&i.Slug,
 		&i.Thumbnail,
 		&i.ContentDescription,
 		&i.CommentsEnabled,
@@ -2120,7 +2244,7 @@ SET
     published_at = null,
     updated_at = now()
 WHERE content_id = $1
-RETURNING content_id, user_id, category_id, title, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
+RETURNING content_id, user_id, category_id, title, slug, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
 `
 
 func (q *Queries) UnarchiveContent(ctx context.Context, contentID pgtype.UUID) (Content, error) {
@@ -2131,6 +2255,7 @@ func (q *Queries) UnarchiveContent(ctx context.Context, contentID pgtype.UUID) (
 		&i.UserID,
 		&i.CategoryID,
 		&i.Title,
+		&i.Slug,
 		&i.Thumbnail,
 		&i.ContentDescription,
 		&i.CommentsEnabled,
@@ -2160,9 +2285,10 @@ SET
     view_count_enabled = COALESCE($6, view_count_enabled),
     like_count_enabled = COALESCE($7, like_count_enabled),
     dislike_count_enabled = COALESCE($8, dislike_count_enabled),
+    slug= COALESCE($9, slug),
     updated_at = now()
 WHERE content_id = $1
-RETURNING content_id, user_id, category_id, title, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
+RETURNING content_id, user_id, category_id, title, slug, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
 `
 
 type UpdateContentParams struct {
@@ -2174,6 +2300,7 @@ type UpdateContentParams struct {
 	ViewCountEnabled    bool
 	LikeCountEnabled    bool
 	DislikeCountEnabled bool
+	Slug                string
 }
 
 func (q *Queries) UpdateContent(ctx context.Context, arg UpdateContentParams) (Content, error) {
@@ -2186,6 +2313,7 @@ func (q *Queries) UpdateContent(ctx context.Context, arg UpdateContentParams) (C
 		arg.ViewCountEnabled,
 		arg.LikeCountEnabled,
 		arg.DislikeCountEnabled,
+		arg.Slug,
 	)
 	var i Content
 	err := row.Scan(
@@ -2193,6 +2321,7 @@ func (q *Queries) UpdateContent(ctx context.Context, arg UpdateContentParams) (C
 		&i.UserID,
 		&i.CategoryID,
 		&i.Title,
+		&i.Slug,
 		&i.Thumbnail,
 		&i.ContentDescription,
 		&i.CommentsEnabled,
@@ -2227,7 +2356,7 @@ SET
   ),
   updated_at = now()
 WHERE c.content_id = $1 
-RETURNING content_id, user_id, category_id, title, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
+RETURNING content_id, user_id, category_id, title, slug, thumbnail, content_description, comments_enabled, view_count_enabled, like_count_enabled, dislike_count_enabled, status, view_count, like_count, dislike_count, comment_count, created_at, updated_at, published_at, is_deleted
 `
 
 func (q *Queries) UpdateContentLikeDislikeCount(ctx context.Context, contentID pgtype.UUID) (Content, error) {
@@ -2238,6 +2367,7 @@ func (q *Queries) UpdateContentLikeDislikeCount(ctx context.Context, contentID p
 		&i.UserID,
 		&i.CategoryID,
 		&i.Title,
+		&i.Slug,
 		&i.Thumbnail,
 		&i.ContentDescription,
 		&i.CommentsEnabled,

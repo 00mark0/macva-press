@@ -1,9 +1,19 @@
 package utils
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
+	"time"
 )
+
+func PrettyURL(slug string, publishedAt time.Time) string {
+	return fmt.Sprintf("/%s/%s/%s",
+		publishedAt.Format("2006"),
+		publishedAt.Format("01"),
+		slug,
+	)
+}
 
 // Mapping for Serbian Latin characters to ASCII
 var transliterationMap = map[string]string{

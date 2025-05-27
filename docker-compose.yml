@@ -11,7 +11,7 @@ services:
       - .:/app  # Mount project directory for live editing
     tty: true
     depends_on:
-      - mp-db-dev
+      - mp-db
 
   mp-db:
     image: ${DB_DRIVER}:latest

@@ -3,13 +3,14 @@ INSERT INTO content (
     user_id,
     category_id,
     title,
+    slug,
     content_description,
     comments_enabled,
     view_count_enabled,
     like_count_enabled,
     dislike_count_enabled
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8
+    $1, $2, $3, $4, $5, $6, $7, $8, $9
 )
 RETURNING *;
 
@@ -23,6 +24,7 @@ SET
     view_count_enabled = COALESCE($6, view_count_enabled),
     like_count_enabled = COALESCE($7, like_count_enabled),
     dislike_count_enabled = COALESCE($8, dislike_count_enabled),
+    slug= COALESCE($9, slug),
     updated_at = now()
 WHERE content_id = $1
 RETURNING *;
@@ -465,6 +467,27 @@ WHERE c.content_id <> $1
   )
 ORDER BY c.published_at DESC
 LIMIT $2;
+
+-- name: GetContentBySlug :one
+SELECT
+  c.*,
+  u.username,
+  cat.category_name,
+  (
+    SELECT array_agg(t.tag_name)::text[]
+    FROM content_tag ct
+    JOIN tag t ON ct.tag_id = t.tag_id
+    WHERE ct.content_id = c.content_id
+  ) AS tags
+FROM content c
+JOIN "user" u ON c.user_id = u.user_id
+JOIN category cat ON c.category_id = cat.category_id
+WHERE c.slug = $1
+  AND c.is_deleted = false
+  AND c.status = 'published'
+LIMIT 1;
+
+
 
 
 

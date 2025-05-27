@@ -164,7 +164,7 @@ func SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm 
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var8 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID.String()))
+			var templ_7745c5c3_Var8 templ.SafeURL = templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAt.Time))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var8)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -200,7 +200,7 @@ func SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" class=\"thumbnail absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 brightness-90 group-hover:brightness-100\"><div class=\"absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent\"></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" fetchpriority=\"high\" class=\"thumbnail absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 brightness-90 group-hover:brightness-100\"><div class=\"absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent\"></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -214,7 +214,7 @@ func SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm 
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var11 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID.String()))
+			var templ_7745c5c3_Var11 templ.SafeURL = templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAt.Time))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var11)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -226,7 +226,7 @@ func SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm 
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(utils.TimeAgo(v.PublishedAt.Time))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 54, Col: 78}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 55, Col: 78}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -239,7 +239,7 @@ func SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm 
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(v.CategoryName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 55, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 56, Col: 56}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -252,7 +252,7 @@ func SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm 
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(v.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 58, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 59, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -265,7 +265,7 @@ func SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm 
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(utils.ParseHTMLToText(v.ContentDescription))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 61, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 62, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -283,7 +283,7 @@ func SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm 
 				var templ_7745c5c3_Var16 string
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(v.ViewCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 74, Col: 36}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 75, Col: 36}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
@@ -302,7 +302,7 @@ func SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm 
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(v.LikeCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 82, Col: 36}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 83, Col: 36}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -321,7 +321,7 @@ func SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm 
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(v.DislikeCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 90, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 91, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -340,7 +340,7 @@ func SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm 
 				var templ_7745c5c3_Var19 string
 				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(v.CommentCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 98, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 99, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 				if templ_7745c5c3_Err != nil {
@@ -368,7 +368,7 @@ func SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm 
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/api/search?search_term=%s&limit=%d", searchTerm, nextLimit))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 111, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 112, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -422,7 +422,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var22 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID))
+				var templ_7745c5c3_Var22 templ.SafeURL = templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAtPgType.Time))
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var22)))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -434,7 +434,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 				var templ_7745c5c3_Var23 string
 				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(v.Thumbnail)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 142, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 143, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 				if templ_7745c5c3_Err != nil {
@@ -447,7 +447,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 				var templ_7745c5c3_Var24 string
 				templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(v.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 143, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 144, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 				if templ_7745c5c3_Err != nil {
@@ -462,7 +462,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var25 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID))
+			var templ_7745c5c3_Var25 templ.SafeURL = templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAtPgType.Time))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var25)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -474,7 +474,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 			var templ_7745c5c3_Var26 string
 			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(v.Username)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 158, Col: 21}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 159, Col: 21}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 			if templ_7745c5c3_Err != nil {
@@ -487,7 +487,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 			var templ_7745c5c3_Var27 string
 			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(v.PublishedAt)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 161, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 162, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 			if templ_7745c5c3_Err != nil {
@@ -500,7 +500,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 			var templ_7745c5c3_Var28 string
 			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(v.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 164, Col: 17}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 165, Col: 17}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 			if templ_7745c5c3_Err != nil {
@@ -513,7 +513,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 			var templ_7745c5c3_Var29 string
 			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(utils.ParseHTMLToText(v.ContentDescription))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 167, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 168, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 			if templ_7745c5c3_Err != nil {
@@ -531,7 +531,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 				var templ_7745c5c3_Var30 string
 				templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(v.ViewCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 179, Col: 34}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 180, Col: 34}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 				if templ_7745c5c3_Err != nil {
@@ -550,7 +550,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 				var templ_7745c5c3_Var31 string
 				templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(v.LikeCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 187, Col: 34}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 188, Col: 34}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 				if templ_7745c5c3_Err != nil {
@@ -569,7 +569,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 				var templ_7745c5c3_Var32 string
 				templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(v.DislikeCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 195, Col: 37}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 196, Col: 37}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 				if templ_7745c5c3_Err != nil {
@@ -588,7 +588,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 				var templ_7745c5c3_Var33 string
 				templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(v.CommentCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 203, Col: 37}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 204, Col: 37}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 				if templ_7745c5c3_Err != nil {
@@ -616,7 +616,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 			var templ_7745c5c3_Var34 string
 			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/api/content/other?limit=%d", nextLimit))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 215, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/search.templ`, Line: 216, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {

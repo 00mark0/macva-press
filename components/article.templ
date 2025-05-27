@@ -20,7 +20,7 @@ console.warn('No URL set for this sort option.');
 }
 }
 
-templ Article(content db.GetContentDetailsRow, globalSettings db.GlobalSetting, userReaction string, activeAds []db.Ad, canonical string, articleMediaSliderComponent templ.Component) {
+templ Article(content db.GetContentBySlugRow, globalSettings db.GlobalSetting, userReaction string, activeAds []db.Ad, canonical string, articleMediaSliderComponent templ.Component) {
 	<article class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
 		<!-- Media Slider with shadow and rounded corners -->
 		<section id="article-page-media-slider" class="mb-8 rounded-xl overflow-hidden shadow-lg dark:shadow-gray-800">
@@ -426,7 +426,7 @@ templ Article(content db.GetContentDetailsRow, globalSettings db.GlobalSetting, 
 }
 
 templ ArticlePage(props ...interface{}) {
-	@Layout(props[0].(db.GetUserByIDRow), props[1].(Meta), props[2].([]db.Ad), props[3].([]db.Category), Article(props[4].(db.GetContentDetailsRow), props[5].(db.GlobalSetting), props[6].(string), props[7].([]db.Ad), props[8].(string), props[9].(templ.Component)))
+	@Layout(props[0].(db.GetUserByIDRow), props[1].(Meta), props[2].([]db.Ad), props[3].([]db.Category), Article(props[4].(db.GetContentBySlugRow), props[5].(db.GlobalSetting), props[6].(string), props[7].([]db.Ad), props[8].(string), props[9].(templ.Component)))
 }
 
 templ ArticleMediaSlider(media []db.Medium) {
@@ -855,7 +855,7 @@ templ ArticleMediaSlider(media []db.Medium) {
 	}
 }
 
-templ ArticleStats(v db.GetContentDetailsRow, globalSettings db.GlobalSetting, userReaction string) {
+templ ArticleStats(v db.GetContentBySlugRow, globalSettings db.GlobalSetting, userReaction string) {
 	<div class="flex flex-wrap items-center justify-between gap-4">
 		<!-- Publishing info -->
 		<div class="flex items-center text-sm text-gray-600 dark:text-gray-400">

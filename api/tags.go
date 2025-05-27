@@ -31,7 +31,10 @@ func (server *Server) createTag(ctx echo.Context) error {
 		return Render(ctx, http.StatusOK, components.ArticleError(message))
 	}
 
-	_, err := server.store.CreateTag(ctx.Request().Context(), req.TagName)
+	_, err := server.store.CreateTag(ctx.Request().Context(), db.CreateTagParams{
+		TagName: req.TagName,
+		Slug:    utils.Slugify(req.TagName),
+	})
 	if err != nil {
 		message := "Tag sa ovim imenom već postoji."
 		// Set header to indicate error and where to show it
@@ -445,6 +448,7 @@ func (server *Server) listContentByTagsUnderCategory(ctx echo.Context) error {
 			contentByTags = append(contentByTags, components.ContentByTag{
 				TagID:   tag.TagID.String(),
 				TagName: tag.TagName,
+				Slug:    tag.Slug,
 				Content: content,
 			})
 		}
@@ -484,14 +488,9 @@ func (server *Server) GenerateRecentTagContentComponent(ctx echo.Context) (templ
 		return nil, err
 	}
 
-	tagIDStr := ctx.Param("id")
-	tagID, err := utils.ParseUUID(tagIDStr, "tag ID")
-	if err != nil {
-		log.Println("Invalid tag ID format in listAllContentByTag:", err)
-		return nil, err
-	}
+	tagSlug := ctx.Param("slug")
 
-	tag, err := server.store.GetTag(ctx.Request().Context(), tagID)
+	tag, err := server.store.GetTagBySlug(ctx.Request().Context(), tagSlug)
 	if err != nil {
 		log.Println("Error fetching tag in listAllContentByTag:", err)
 		return nil, err
@@ -528,6 +527,6 @@ func (server *Server) GenerateRecentTagContentComponent(ctx echo.Context) (templ
 		}
 	}
 
-	return components.TagsGrid(tagIDStr, content, int(nextLimit), globalSettings[0]), nil
+	return components.TagsGrid(tag.TagID.String(), content, int(nextLimit), globalSettings[0]), nil
 
 }

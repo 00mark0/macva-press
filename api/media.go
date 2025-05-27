@@ -541,14 +541,14 @@ func (server *Server) listMediaForArticlePage(ctx echo.Context) error {
 }
 
 func (server *Server) GenerateArticleMediaSliderComponent(ctx echo.Context) (templ.Component, error) {
-	articleIDStr := ctx.Param("id")
-	articleID, err := utils.ParseUUID(articleIDStr, "article ID")
+	slug := ctx.Param("slug")
+	article, err := server.store.GetContentBySlug(ctx.Request().Context(), slug)
 	if err != nil {
-		log.Println("Invalid article ID in listMediaForArticlePage:", err)
+		log.Println("Error getting article by slug in GenerateArticleMediaSliderComponent:", err)
 		return nil, err
 	}
 
-	media, err := server.store.ListMediaForContent(ctx.Request().Context(), articleID)
+	media, err := server.store.ListMediaForContent(ctx.Request().Context(), article.ContentID)
 	if err != nil {
 		log.Println("Error listing media for article in listMediaForArticlePage:", err)
 		return nil, err

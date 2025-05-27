@@ -168,7 +168,7 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 					<div class="max-w-screen-xl mx-auto overflow-x-auto">
 						<div class="flex space-x-4 p-3 scrollbar-hide">
 							for _, category := range categories {
-								<a href={ templ.SafeURL("/kategorije/" + utils.Slugify(category.CategoryName) + "/" + category.CategoryID.String()) } class="flex-shrink-0 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors duration-200">
+								<a href={ templ.SafeURL("/kategorije/" + utils.Slugify(category.CategoryName)) } class="flex-shrink-0 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors duration-200">
 									{ category.CategoryName }
 								</a>
 							}
@@ -247,7 +247,9 @@ templ Layout(user db.GetUserByIDRow, meta Meta, activeAds []db.Ad, categories []
 							<div class="grid grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-2">
 								for _, category := range categories {
 									<ul>
-										<li><a href={ templ.SafeURL(fmt.Sprintf("/kategorije/%s/%s", utils.Slugify(category.CategoryName), category.CategoryID.String())) } class="text-gray-700 dark:text-gray-300 hover:text-primary">{ category.CategoryName }</a></li>
+										<li>
+											<a href={ templ.SafeURL("/kategorije/" + utils.Slugify(category.CategoryName)) } class="text-gray-700 dark:text-gray-300 hover:text-primary">{ category.CategoryName }</a>
+										</li>
 									</ul>
 								}
 							</div>

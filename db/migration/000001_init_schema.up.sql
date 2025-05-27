@@ -30,6 +30,7 @@ CREATE TABLE "content" (
   "user_id" UUID NOT NULL,
   "category_id" UUID NOT NULL,
   "title" TEXT NOT NULL,
+  "slug" TEXT UNIQUE NOT NULL,
   "thumbnail" TEXT,
   "content_description" TEXT NOT NULL,
   "comments_enabled" BOOL NOT NULL DEFAULT true,
@@ -57,12 +58,14 @@ CREATE TABLE "views" (
 
 CREATE TABLE "category" (
   "category_id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "category_name" VARCHAR(50) NOT NULL UNIQUE
+  "category_name" VARCHAR(50) NOT NULL UNIQUE,
+  "slug" TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE "tag" (
   "tag_id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "tag_name" VARCHAR(50) NOT NULL UNIQUE
+  "tag_name" VARCHAR(50) NOT NULL UNIQUE,
+  "slug" TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE "content_tag" (

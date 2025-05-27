@@ -85,7 +85,10 @@ func (server *Server) createCategory(ctx echo.Context) error {
 		}
 	}
 
-	_, err = server.store.CreateCategory(ctx.Request().Context(), req.CategoryName)
+	_, err = server.store.CreateCategory(ctx.Request().Context(), db.CreateCategoryParams{
+		CategoryName: req.CategoryName,
+		Slug:         utils.Slugify(req.CategoryName),
+	})
 	if err != nil {
 		log.Println("Error creating category in createCategory:", err)
 		return err
@@ -168,6 +171,9 @@ func (server *Server) updateCategory(ctx echo.Context) error {
 	}
 
 	for _, category := range categories {
+		if category.CategoryID == categoryID {
+			continue // skip the current category being edited
+		}
 		if category.CategoryName == req.CategoryName {
 			updateCatErr = "Kategorija sa ovim imenom već postoji"
 			return Render(ctx, http.StatusOK, components.UpdateCategoryForm(category, updateCatErr))
@@ -177,6 +183,7 @@ func (server *Server) updateCategory(ctx echo.Context) error {
 	arg := db.UpdateCategoryParams{
 		CategoryID:   categoryID,
 		CategoryName: req.CategoryName,
+		Slug:         utils.Slugify(req.CategoryName),
 	}
 
 	_, err = server.store.UpdateCategory(ctx.Request().Context(), arg)
@@ -202,36 +209,48 @@ func (server *Server) GenerateRecentCatContentComponent(ctx echo.Context) (templ
 	var req ListPublishedLimitReq
 
 	if err := ctx.Bind(&req); err != nil {
-		log.Println("Error binding request in listRecentCategoryContent:", err)
+		log.Println("Error binding request in GenerateRecentCatContentComponent:", err)
 		return nil, err
 	}
 
-	categoryIDStr := ctx.Param("id")
-	categoryID, err := utils.ParseUUID(categoryIDStr, "category ID")
-	if err != nil {
-		log.Println("Invalid category ID format in listRecentCategoryContent:", err)
-		return nil, err
-	}
+	var category db.Category
+	var err error
 
-	category, err := server.store.GetCategoryByID(ctx.Request().Context(), categoryID)
-	if err != nil {
-		log.Println("Error getting category in listRecentCategoryContent:", err)
-		return nil, err
+	// Try slug first
+	if slug := ctx.Param("slug"); slug != "" {
+		category, err = server.store.GetCategoryBySlug(ctx.Request().Context(), slug)
+		if err != nil {
+			log.Println("Error getting category by slug in GenerateRecentCatContentComponent:", err)
+			return nil, err
+		}
+	} else if idStr := ctx.Param("id"); idStr != "" {
+		categoryID, parseErr := utils.ParseUUID(idStr, "category ID")
+		if parseErr != nil {
+			log.Println("Invalid category ID format in GenerateRecentCatContentComponent:", parseErr)
+			return nil, parseErr
+		}
+		category, err = server.store.GetCategoryByID(ctx.Request().Context(), categoryID)
+		if err != nil {
+			log.Println("Error getting category by ID in GenerateRecentCatContentComponent:", err)
+			return nil, err
+		}
+	} else {
+		log.Println("Missing both slug and ID in GenerateRecentCatContentComponent")
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "Missing slug or ID")
 	}
 
 	nextLimit := req.Limit + 9
 
 	arg := db.ListContentByCategoryLimitParams{
-		CategoryID: categoryID,
+		CategoryID: category.CategoryID,
 		Limit:      nextLimit,
 	}
 
 	data, err := server.store.ListContentByCategoryLimit(ctx.Request().Context(), arg)
 	if err != nil {
-		log.Println("Error listing content in listRecentCategoryContent:", err)
+		log.Println("Error listing content in GenerateRecentCatContentComponent:", err)
 		return nil, err
 	}
-
 	// Convert DB content items to ContentData
 	var categoryContent []components.ContentData
 	for _, item := range data {
@@ -241,6 +260,7 @@ func (server *Server) GenerateRecentCatContentComponent(ctx echo.Context) (templ
 			CategoryID:   item.CategoryID,
 			CategoryName: category.CategoryName, // Use the category name from the category object
 			Title:        item.Title,
+			Slug:         item.Slug,
 			Thumbnail: func() pgtype.Text {
 				if item.Thumbnail.Valid && item.Thumbnail.String != "" {
 					return item.Thumbnail

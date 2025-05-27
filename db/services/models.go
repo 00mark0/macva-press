@@ -37,6 +37,7 @@ type AnalyticsDaily struct {
 type Category struct {
 	CategoryID   pgtype.UUID
 	CategoryName string
+	Slug         string
 }
 
 type Comment struct {
@@ -62,6 +63,7 @@ type Content struct {
 	UserID              pgtype.UUID
 	CategoryID          pgtype.UUID
 	Title               string
+	Slug                string
 	Thumbnail           pgtype.Text
 	ContentDescription  string
 	CommentsEnabled     bool
@@ -123,6 +125,7 @@ type Session struct {
 type Tag struct {
 	TagID   pgtype.UUID
 	TagName string
+	Slug    string
 }
 
 type User struct {

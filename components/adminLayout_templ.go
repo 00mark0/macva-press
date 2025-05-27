@@ -35,14 +35,14 @@ func AdminLayout(payload db.GetUserByIDRow, children ...templ.Component) templ.C
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Mačva Press - Admin Panel</title><meta name=\"description\" content=\"Mačva Press Admin Panel\"><link rel=\"preload\" href=\"/static/css/output.css\" as=\"style\"><link rel=\"preload\" href=\"/static/js/htmx.min.js\" as=\"script\"><link rel=\"preload\" href=\"/static/js/dark-mode.js\" as=\"script\"><link rel=\"preload\" href=\"/static/react/main.js\" as=\"script\"><link rel=\"preload\" href=\"/static/js/admin.js\" as=\"script\"><link href=\"/static/css/output.css\" rel=\"stylesheet\"><script src=\"/static/js/htmx.min.js\" defer></script><script src=\"/static/js/dark-mode.js\" defer></script><script src=\"/static/js/admin.js\" defer></script><script src=\"/static/react/main.js\" defer></script></head><body><nav class=\"fixed top-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-black dark:border-gray-200\"><div class=\"px-3 py-3 lg:px-5 lg:pl-3\"><div class=\"flex items-center justify-between\"><div class=\"flex items-center justify-start rtl:justify-end\"><button data-drawer-target=\"logo-sidebar\" data-drawer-toggle=\"logo-sidebar\" aria-controls=\"logo-sidebar\" type=\"button\" class=\"inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600\"><span class=\"sr-only\">Open sidebar</span> <svg class=\"w-6 h-6\" aria-hidden=\"true\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path clip-rule=\"evenodd\" fill-rule=\"evenodd\" d=\"M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z\"></path></svg></button> <a href=\"/admin\" class=\"flex ms-2 md:me-24\"><img src=\"/static/assets/macva-1-300x71.png\" class=\"sm:h-14 sm:w-64 h-12 w-48 object-fit rounded-lg me-3\" alt=\"Macva News Logo\"><h1 class=\"sm:block hidden self-center text-xl font-semibold whitespace-nowrap dark:text-white\">Mačva Press - Admin Panel</h1></a></div><div class=\"flex items-center\"><div class=\"flex items-center ms-3\"><div><button type=\"button\" class=\"cursor-pointer flex text-sm rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600\" aria-expanded=\"false\" data-dropdown-toggle=\"dropdown-user\"><span class=\"sr-only\">Open user menu</span> <img class=\"w-10 h-10 rounded-full object-fit\" src=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Mačva Press - Admin Panel</title><meta name=\"description\" content=\"Mačva Press Admin Panel\"><!-- Standard favicon --><link rel=\"icon\" type=\"image/png\" href=\"/static/assets/cropped-macvaLogo-32x32.png\" sizes=\"32x32\"><!-- For Safari on macOS and iOS (optional but recommended) --><link rel=\"apple-touch-icon\" href=\"/static/assets/macva-1-300x71.png\" sizes=\"180x180\"><!-- For older IE (optional fallback) --><link rel=\"shortcut icon\" href=\"/static/assets/cropped-macvaLogo-32x32.png\"><link rel=\"preload\" href=\"/static/css/output.css\" as=\"style\"><link rel=\"preload\" href=\"/static/js/htmx.min.js\" as=\"script\"><link rel=\"preload\" href=\"/static/js/dark-mode.js\" as=\"script\"><link rel=\"preload\" href=\"/static/react/main.js\" as=\"script\"><link rel=\"preload\" href=\"/static/js/admin.js\" as=\"script\"><link href=\"/static/css/output.css\" rel=\"stylesheet\"><script src=\"/static/js/htmx.min.js\" defer></script><script src=\"/static/js/dark-mode.js\" defer></script><script src=\"/static/js/admin.js\" defer></script><script src=\"/static/react/main.js\" defer></script></head><body><nav class=\"fixed top-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-black dark:border-gray-200\"><div class=\"px-3 py-3 lg:px-5 lg:pl-3\"><div class=\"flex items-center justify-between\"><div class=\"flex items-center justify-start rtl:justify-end\"><button data-drawer-target=\"logo-sidebar\" data-drawer-toggle=\"logo-sidebar\" aria-controls=\"logo-sidebar\" type=\"button\" class=\"inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600\"><span class=\"sr-only\">Open sidebar</span> <svg class=\"w-6 h-6\" aria-hidden=\"true\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path clip-rule=\"evenodd\" fill-rule=\"evenodd\" d=\"M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z\"></path></svg></button> <a href=\"/admin\" class=\"flex ms-2 md:me-24\"><img src=\"/static/assets/macva-1-300x71.png\" class=\"sm:h-14 sm:w-64 h-12 w-48 object-fit rounded-lg me-3\" alt=\"Macva News Logo\"><h1 class=\"sm:block hidden self-center text-xl font-semibold whitespace-nowrap dark:text-white\">Mačva Press - Admin Panel</h1></a></div><div class=\"flex items-center\"><div class=\"flex items-center ms-3\"><div><button type=\"button\" class=\"cursor-pointer flex text-sm rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600\" aria-expanded=\"false\" data-dropdown-toggle=\"dropdown-user\"><span class=\"sr-only\">Open user menu</span> <img class=\"w-10 h-10 rounded-full object-fit\" src=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(payload.Pfp)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/adminLayout.templ`, Line: 77, Col: 28}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/adminLayout.templ`, Line: 83, Col: 28}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -55,7 +55,7 @@ func AdminLayout(payload db.GetUserByIDRow, children ...templ.Component) templ.C
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(payload.Username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/adminLayout.templ`, Line: 89, Col: 29}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/adminLayout.templ`, Line: 95, Col: 29}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -68,7 +68,7 @@ func AdminLayout(payload db.GetUserByIDRow, children ...templ.Component) templ.C
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(payload.Email)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/adminLayout.templ`, Line: 92, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/adminLayout.templ`, Line: 98, Col: 26}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -91,7 +91,7 @@ func AdminLayout(payload db.GetUserByIDRow, children ...templ.Component) templ.C
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(time.Now().Year()))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/adminLayout.templ`, Line: 283, Col: 39}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/adminLayout.templ`, Line: 289, Col: 39}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {

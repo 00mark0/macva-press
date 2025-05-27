@@ -75,7 +75,7 @@ templ TagContentSection(tagContent ContentByTag, globalSettings db.GlobalSetting
 				<div class="w-1 h-8 bg-blue-600 mr-3"></div>
 				<h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">{ tagContent.TagName }</h2>
 			</div>
-			<a href={ templ.SafeURL(fmt.Sprintf("/oznake/%s/%s", utils.Slugify(tagContent.TagName), tagContent.TagID)) } class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium flex items-center transition-colors">
+			<a href={ templ.SafeURL(fmt.Sprintf("/oznake/%s", tagContent.Slug)) } class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium flex items-center transition-colors">
 				Vidi sve
 				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
 					<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
@@ -95,7 +95,7 @@ templ ContentCard(v db.ListContentByTagRow, globalSettings db.GlobalSetting) {
 	<article class="group relative bg-white shadow-md border-b-2 border-gray-200 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 overflow-hidden dark:bg-gray-800 flex flex-col h-[364px]" style="z-index: 10;">
 		<div class="flex flex-col h-full">
 			<!-- Image Container - Fixed height -->
-			<a href={ templ.SafeURL(fmt.Sprintf("/%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID.String())) }>
+			<a href={ templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAt.Time)) }>
 				<div class="relative w-full h-48">
 					if v.Thumbnail.Valid && v.Thumbnail.String != "" {
 						<img
@@ -113,7 +113,7 @@ templ ContentCard(v db.ListContentByTagRow, globalSettings db.GlobalSetting) {
 			<div class="pt-2 px-4 relative flex-grow flex flex-col justify-between z-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
 				<div class="absolute top-0 left-0 w-1 h-full bg-gray-800 group-hover:bg-blue-600 transition-colors duration-300"></div>
 				<!-- Top content section -->
-				<a href={ templ.SafeURL(fmt.Sprintf("/%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID.String())) }>
+				<a href={ templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAt.Time)) }>
 					<div>
 						<div class="flex justify-between items-center text-xs text-gray-600 dark:text-gray-300 mb-2 space-x-2">
 							<span class="dark:text-gray-300">{ utils.TimeAgo(v.PublishedAt.Time) }</span>
@@ -164,7 +164,7 @@ templ ContentCard(v db.ListContentByTagRow, globalSettings db.GlobalSetting) {
 							</span>
 						}
 					</div>
-					<a href={ templ.SafeURL(fmt.Sprintf("/content/%s", v.ContentID.String())) } class="text-blue-600 hover:text-blue-800 dark:text-blue-400 font-medium text-xs">
+					<a href={ templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAt.Time)) } class="text-blue-600 hover:text-blue-800 dark:text-blue-400 font-medium text-xs">
 						Pročitaj više
 					</a>
 				</div>
@@ -180,7 +180,7 @@ templ RecentCategoryContent(content []ContentData, globalSettings db.GlobalSetti
 			<article class="group relative bg-white shadow-md border-b-2 border-gray-200 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 overflow-hidden dark:bg-gray-800 flex flex-col h-[364px]" style="z-index: 10;">
 				<div class="flex flex-col h-full">
 					<!-- Image Container - Fixed height -->
-					<a href={ templ.SafeURL(fmt.Sprintf("/%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID.String())) }>
+					<a href={ templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAt.Time)) }>
 						<div class="relative w-full h-48">
 							if v.Thumbnail.Valid && v.Thumbnail.String != "" {
 								<img
@@ -199,7 +199,7 @@ templ RecentCategoryContent(content []ContentData, globalSettings db.GlobalSetti
 					<div class="px-4 pt-2 relative flex-grow flex flex-col justify-between z-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
 						<div class="absolute top-0 left-0 w-1 h-full bg-gray-800 group-hover:bg-blue-600 transition-colors duration-300"></div>
 						<!-- Top content section -->
-						<a href={ templ.SafeURL(fmt.Sprintf("/%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID.String())) }>
+						<a href={ templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAt.Time)) }>
 							<div>
 								<div class="flex justify-between items-center text-xs text-gray-600 dark:text-gray-300 mb-2 space-x-2">
 									<span class="dark:text-gray-300">{ utils.TimeAgo(v.PublishedAt.Time) }</span>

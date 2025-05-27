@@ -1,13 +1,14 @@
 -- name: CreateTag :one
-INSERT INTO tag (tag_name)
-VALUES ($1)
-RETURNING tag_id, tag_name;
+INSERT INTO tag (tag_name, slug)
+VALUES ($1, $2)
+RETURNING tag_id, tag_name, slug;
 
 -- name: UpdateTag :one
 UPDATE tag
-SET tag_name = $1
-WHERE tag_id = $2
-RETURNING tag_id, tag_name;
+SET tag_name = $1,
+    slug = $2
+WHERE tag_id = $3
+RETURNING tag_id, tag_name, slug;
 
 -- name: DeleteTag :exec
 WITH deleted_tag AS (
@@ -19,18 +20,23 @@ DELETE FROM content_tag
 WHERE tag_id IN (SELECT tag_id FROM deleted_tag);
 
 -- name: GetTag :one
-SELECT tag_id, tag_name
+SELECT *
 FROM tag
 WHERE tag_id = $1;
 
+-- name: GetTagBySlug :one
+SELECT *
+FROM tag
+WHERE slug = $1;
+
 -- name: ListTags :many
-SELECT tag_id, tag_name
+SELECT *
 FROM tag
 ORDER BY tag_name ASC
 LIMIT $1;
 
 -- name: SearchTags :many
-SELECT tag_id, tag_name
+SELECT *
 FROM tag
 WHERE lower(tag_name) LIKE lower(@search::text)
 ORDER BY tag_name ASC
@@ -41,13 +47,13 @@ INSERT INTO content_tag (content_id, tag_id)
 VALUES ($1, $2);
 
 -- name: GetTagsByContent :many
-SELECT tag.tag_id, tag.tag_name
+SELECT tag.tag_id, tag.tag_name, tag.slug
 FROM tag
 JOIN content_tag ct ON tag.tag_id = ct.tag_id
 WHERE ct.content_id = $1;
 
 -- name: GetUniqueTagsByCategoryID :many
-SELECT DISTINCT t.tag_id, t.tag_name
+SELECT DISTINCT t.tag_id, t.tag_name, t.slug
 FROM tag t
 JOIN content_tag ct ON t.tag_id = ct.tag_id
 JOIN content c ON ct.content_id = c.content_id

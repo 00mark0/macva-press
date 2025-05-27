@@ -12,33 +12,38 @@ import (
 )
 
 const createCategory = `-- name: CreateCategory :one
-INSERT INTO category (category_name)
-VALUES ($1)
-RETURNING category_id, category_name
+INSERT INTO category (category_name, slug)
+VALUES ($1, $2)
+RETURNING category_id, category_name, slug
 `
 
-func (q *Queries) CreateCategory(ctx context.Context, categoryName string) (Category, error) {
-	row := q.db.QueryRow(ctx, createCategory, categoryName)
+type CreateCategoryParams struct {
+	CategoryName string
+	Slug         string
+}
+
+func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error) {
+	row := q.db.QueryRow(ctx, createCategory, arg.CategoryName, arg.Slug)
 	var i Category
-	err := row.Scan(&i.CategoryID, &i.CategoryName)
+	err := row.Scan(&i.CategoryID, &i.CategoryName, &i.Slug)
 	return i, err
 }
 
 const deleteCategory = `-- name: DeleteCategory :one
 DELETE FROM category
 WHERE category_id = $1
-RETURNING category_id, category_name
+RETURNING category_id, category_name, slug
 `
 
 func (q *Queries) DeleteCategory(ctx context.Context, categoryID pgtype.UUID) (Category, error) {
 	row := q.db.QueryRow(ctx, deleteCategory, categoryID)
 	var i Category
-	err := row.Scan(&i.CategoryID, &i.CategoryName)
+	err := row.Scan(&i.CategoryID, &i.CategoryName, &i.Slug)
 	return i, err
 }
 
 const getCategory = `-- name: GetCategory :one
-SELECT category_id, category_name
+SELECT category_id, category_name, slug
 FROM category
 WHERE category_id = $1
 `
@@ -46,12 +51,12 @@ WHERE category_id = $1
 func (q *Queries) GetCategory(ctx context.Context, categoryID pgtype.UUID) (Category, error) {
 	row := q.db.QueryRow(ctx, getCategory, categoryID)
 	var i Category
-	err := row.Scan(&i.CategoryID, &i.CategoryName)
+	err := row.Scan(&i.CategoryID, &i.CategoryName, &i.Slug)
 	return i, err
 }
 
 const getCategoryByID = `-- name: GetCategoryByID :one
-SELECT category_id, category_name
+SELECT category_id, category_name, slug
 FROM category
 WHERE category_id = $1
 `
@@ -59,12 +64,12 @@ WHERE category_id = $1
 func (q *Queries) GetCategoryByID(ctx context.Context, categoryID pgtype.UUID) (Category, error) {
 	row := q.db.QueryRow(ctx, getCategoryByID, categoryID)
 	var i Category
-	err := row.Scan(&i.CategoryID, &i.CategoryName)
+	err := row.Scan(&i.CategoryID, &i.CategoryName, &i.Slug)
 	return i, err
 }
 
 const getCategoryByName = `-- name: GetCategoryByName :one
-SELECT category_id, category_name
+SELECT category_id, category_name, slug
 FROM category
 WHERE category_name = $1
 `
@@ -72,12 +77,25 @@ WHERE category_name = $1
 func (q *Queries) GetCategoryByName(ctx context.Context, categoryName string) (Category, error) {
 	row := q.db.QueryRow(ctx, getCategoryByName, categoryName)
 	var i Category
-	err := row.Scan(&i.CategoryID, &i.CategoryName)
+	err := row.Scan(&i.CategoryID, &i.CategoryName, &i.Slug)
+	return i, err
+}
+
+const getCategoryBySlug = `-- name: GetCategoryBySlug :one
+SELECT category_id, category_name, slug
+FROM category
+WHERE slug = $1
+`
+
+func (q *Queries) GetCategoryBySlug(ctx context.Context, slug string) (Category, error) {
+	row := q.db.QueryRow(ctx, getCategoryBySlug, slug)
+	var i Category
+	err := row.Scan(&i.CategoryID, &i.CategoryName, &i.Slug)
 	return i, err
 }
 
 const listCategories = `-- name: ListCategories :many
-SELECT category_id, category_name
+SELECT category_id, category_name, slug
 FROM category
 ORDER BY category_name ASC
 LIMIT $1
@@ -92,7 +110,7 @@ func (q *Queries) ListCategories(ctx context.Context, limit int32) ([]Category, 
 	var items []Category
 	for rows.Next() {
 		var i Category
-		if err := rows.Scan(&i.CategoryID, &i.CategoryName); err != nil {
+		if err := rows.Scan(&i.CategoryID, &i.CategoryName, &i.Slug); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -105,19 +123,20 @@ func (q *Queries) ListCategories(ctx context.Context, limit int32) ([]Category, 
 
 const updateCategory = `-- name: UpdateCategory :one
 UPDATE category
-SET category_name = $2
+SET category_name = $2, slug = $3
 WHERE category_id = $1
-RETURNING category_id, category_name
+RETURNING category_id, category_name, slug
 `
 
 type UpdateCategoryParams struct {
 	CategoryID   pgtype.UUID
 	CategoryName string
+	Slug         string
 }
 
 func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error) {
-	row := q.db.QueryRow(ctx, updateCategory, arg.CategoryID, arg.CategoryName)
+	row := q.db.QueryRow(ctx, updateCategory, arg.CategoryID, arg.CategoryName, arg.Slug)
 	var i Category
-	err := row.Scan(&i.CategoryID, &i.CategoryName)
+	err := row.Scan(&i.CategoryID, &i.CategoryName, &i.Slug)
 	return i, err
 }

@@ -30,7 +30,7 @@ templ SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm
 				<article class="group relative bg-white shadow-md border-b-2 border-gray-200 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 overflow-hidden dark:bg-gray-800 flex flex-col h-[364px]" style="z-index: 10;">
 					<div class="flex flex-col h-full">
 						<!-- Image Container - Fixed height -->
-						<a href={ templ.SafeURL(fmt.Sprintf("/%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID.String())) }>
+						<a href={ templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAt.Time)) }>
 							<div class="relative w-full h-48">
 								if v.Thumbnail.Valid && v.Thumbnail.String != "" {
 									<img
@@ -49,7 +49,7 @@ templ SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm
 						<div class="px-4 pt-2 relative flex-grow flex flex-col justify-between z-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
 							<div class="absolute top-0 left-0 w-1 h-full bg-gray-800 group-hover:bg-blue-600 transition-colors duration-300"></div>
 							<!-- Top content section -->
-							<a href={ templ.SafeURL(fmt.Sprintf("/%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID.String())) }>
+							<a href={ templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAt.Time)) }>
 								<div>
 									<div class="flex justify-between items-center text-xs text-gray-600 dark:text-gray-300 mb-2 space-x-2">
 										<span class="dark:text-gray-300">{ utils.TimeAgo(v.PublishedAt.Time) }</span>
@@ -138,7 +138,7 @@ templ OtherContent(content []ListPublishedContentRes, nextLimit int, globalSetti
 			<div class="group flex bg-white shadow-md border-b-2 border-gray-200 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-gray-800 rounded-lg overflow-hidden">
 				if v.Thumbnail != "" {
 					<div class="w-1/4 relative h-full overflow-hidden">
-						<a href={ templ.SafeURL(fmt.Sprintf("/%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID)) }>
+						<a href={ templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAtPgType.Time)) }>
 							<img
 								src={ v.Thumbnail }
 								alt={ v.Title }
@@ -149,7 +149,7 @@ templ OtherContent(content []ListPublishedContentRes, nextLimit int, globalSetti
 				}
 				<div class="w-2/3 p-4 flex flex-col justify-between relative">
 					<div class="absolute top-0 left-0 w-1 h-full bg-gray-800 group-hover:bg-blue-600 transition-colors duration-300"></div>
-					<a href={ templ.SafeURL(fmt.Sprintf("/%s/%s", utils.Slugify(utils.GenerateTitleTag(v.Title)), v.ContentID)) }>
+					<a href={ templ.SafeURL(utils.PrettyURL(v.Slug, v.PublishedAtPgType.Time)) }>
 						<div>
 							<div class="w-full flex items-center text-xs text-gray-600 dark:text-gray-300 mb-2 space-x-2">
 								<span class="flex items-center">

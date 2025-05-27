@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/00mark0/macva-press/components"
@@ -846,15 +847,9 @@ func (server *Server) searchResultsPage(ctx echo.Context) error {
 }
 
 func (server *Server) categoriesPage(ctx echo.Context) error {
-	categoryIDStr := ctx.Param("id")
+	categorySlug := ctx.Param("slug")
 
-	categoryID, err := utils.ParseUUID(categoryIDStr, "category ID")
-	if err != nil {
-		log.Println("Invalid category ID format in categoriesPage:", err)
-		return err
-	}
-
-	category, err := server.store.GetCategoryByID(ctx.Request().Context(), categoryID)
+	category, err := server.store.GetCategoryBySlug(ctx.Request().Context(), categorySlug)
 	if err != nil {
 		log.Println("Error getting category in categoriesPage:", err)
 		return err
@@ -869,11 +864,11 @@ func (server *Server) categoriesPage(ctx echo.Context) error {
 	meta := components.Meta{
 		Title:       "Mačva Press | " + category.CategoryName, // Već promenjeno za stranicu kategorija
 		Description: "Istražite vesti po kategorijama i saznajte najnovija dešavanja iz Mačve i Srbije.",
-		Canonical:   BaseUrl + "/kategorije/" + utils.Slugify(category.CategoryName) + "/" + categoryIDStr, // Ažurirano za URL stranice kategorija
+		Canonical:   BaseUrl + "/kategorije/" + utils.Slugify(category.CategoryName), // Ažurirano za URL stranice kategorija
 		OpenGraph: components.OpenGraphMeta{
 			Title:       "Mačva Press | " + category.CategoryName,
 			Description: "Pregledajte vesti iz različitih kategorija i pratite najvažnije teme iz Mačve i Srbije.",
-			URL:         BaseUrl + "/kategorije/" + utils.Slugify(category.CategoryName) + "/" + categoryIDStr, // Ažurirano za URL stranice kategorija
+			URL:         BaseUrl + "/kategorije/" + utils.Slugify(category.CategoryName), // Ažurirano za URL stranice kategorija
 			Type:        "website",
 			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Koristi istu sliku
 		},
@@ -908,15 +903,9 @@ func (server *Server) categoriesPage(ctx echo.Context) error {
 }
 
 func (server *Server) tagPage(ctx echo.Context) error {
-	tagIDStr := ctx.Param("id")
+	tagSlug := ctx.Param("slug")
 
-	tagID, err := utils.ParseUUID(tagIDStr, "tag ID")
-	if err != nil {
-		log.Println("Invalid tag ID format in categoriesPage:", err)
-		return err
-	}
-
-	tag, err := server.store.GetTag(ctx.Request().Context(), tagID)
+	tag, err := server.store.GetTagBySlug(ctx.Request().Context(), tagSlug)
 	if err != nil {
 		log.Println("Error getting category in categoriesPage:", err)
 		return err
@@ -931,11 +920,11 @@ func (server *Server) tagPage(ctx echo.Context) error {
 	meta := components.Meta{
 		Title:       "Mačva Press | " + tag.TagName, // Već promenjeno za stranicu kategorija
 		Description: "Istražite vesti po oznakama i saznajte najnovija dešavanja iz Mačve i Srbije.",
-		Canonical:   BaseUrl + "/kategorije/" + utils.Slugify(tag.TagName) + "/" + tagIDStr, // Ažurirano za URL stranice kategorija
+		Canonical:   BaseUrl + "/oznake/" + tag.Slug, // Ažurirano za URL stranice kategorija
 		OpenGraph: components.OpenGraphMeta{
 			Title:       "Mačva Press | " + tag.TagName,
 			Description: "Pregledajte vesti iz različitih oznaka i pratite najvažnije teme iz Mačve i Srbije.",
-			URL:         BaseUrl + "/kategorije/" + utils.Slugify(tag.TagName) + "/" + tagIDStr, // Ažurirano za URL stranice kategorija
+			URL:         BaseUrl + "/oznake/" + tag.Slug, // Ažurirano za URL stranice kategorija
 			Type:        "website",
 			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Koristi istu sliku
 		},
@@ -1046,34 +1035,51 @@ func (server *Server) handleViews(ctx echo.Context, contentIDStr, userIDStr stri
 }
 
 func (server *Server) articlePage(ctx echo.Context) error {
-	articleIDStr := ctx.Param("id")
-	articleID, err := utils.ParseUUID(articleIDStr, "articleID")
-	if err != nil {
-		log.Println("Invalid articleID format in articlePage:", err)
-		return err
-	} else {
-		log.Println("Valid articleID format in articlePage:", articleID)
+	year := ctx.Param("year")
+	month := ctx.Param("month")
+	slug := ctx.Param("slug")
+
+	if len(year) != 4 || len(month) != 2 {
+		return echo.NewHTTPError(http.StatusNotFound, "Invalid URL format")
 	}
-	article, err := server.store.GetContentDetails(ctx.Request().Context(), articleID)
+
+	if _, err := strconv.Atoi(year); err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "Invalid year format")
+	}
+
+	m, err := strconv.Atoi(month)
+	if err != nil || m < 1 || m > 12 {
+		return echo.NewHTTPError(http.StatusNotFound, "Invalid month format")
+	}
+
+	// Now slug can be any string, proceed
+	article, err := server.store.GetContentBySlug(ctx.Request().Context(), slug)
 	if err != nil {
-		log.Println("Error getting category in categoriesPage:", err)
+		if err == pgx.ErrNoRows {
+			return echo.NewHTTPError(http.StatusNotFound, "Article not found")
+		}
 		return err
+	}
+
+	// Validate published_at year/month matches URL (optional sanity check)
+	if article.PublishedAt.Time.Format("2006") != year || article.PublishedAt.Time.Format("01") != month {
+		return echo.NewHTTPError(http.StatusNotFound, "Article date mismatch")
 	}
 	userData, err := server.getUserFromCacheOrDb(ctx, "refresh_token")
 	if err != nil {
 		log.Println("Error getting user in homePage:", err)
 	}
-	server.handleViews(ctx, articleID.String(), userData.UserID.String())
+	server.handleViews(ctx, article.ContentID.String(), userData.UserID.String())
 
 	// Prepare meta information dynamically for the search page
 	meta := components.Meta{
 		Title:       utils.GenerateTitleTag(article.Title), // Već promenjeno za stranicu kategorija
 		Description: utils.GenerateMetaDescription(article.ContentDescription),
-		Canonical:   BaseUrl + "/" + utils.Slugify(utils.GenerateTitleTag(article.Title)) + "/" + articleIDStr, // Ažurirano za URL stranice kategorija
+		Canonical:   BaseUrl + "/" + utils.PrettyURL(article.Slug, article.PublishedAt.Time), // Ažurirano za URL stranice kategorija
 		OpenGraph: components.OpenGraphMeta{
 			Title:       utils.GenerateTitleTag(article.Title),
 			Description: utils.GenerateMetaDescription(article.ContentDescription),
-			URL:         BaseUrl + "/" + utils.Slugify(utils.GenerateTitleTag(article.Title)) + "/" + articleIDStr, // Ažurirano za URL stranice kategorija
+			URL:         BaseUrl + "/" + utils.PrettyURL(article.Slug, article.PublishedAt.Time), // Ažurirano za URL stranice kategorija
 			Type:        "website",
 			Image:       BaseUrl + article.Thumbnail.String, // Koristi istu sliku
 		},
@@ -1107,7 +1113,7 @@ func (server *Server) articlePage(ctx echo.Context) error {
 	userReaction := ""
 	if userData.UserID.Valid {
 		reaction, err := server.store.FetchUserContentReaction(ctx.Request().Context(), db.FetchUserContentReactionParams{
-			ContentID: articleID,
+			ContentID: article.ContentID,
 			UserID:    userData.UserID,
 		})
 		if err != nil {

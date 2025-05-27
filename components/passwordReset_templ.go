@@ -31,7 +31,7 @@ func PasswordReset(token string, resetErr ResetErr) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Resetovanje Lozinke</title><meta name=\"description\" content=\"Mačva Press Resetovanje Lozinke\"><link href=\"/static/css/output.css\" rel=\"stylesheet\"><script src=\"/static/js/htmx.min.js\"></script></head><div class=\"min-h-screen bg-gray-50 flex items-center justify-center p-4\"><div class=\"bg-white rounded-lg shadow-lg p-8 max-w-md w-full\"><div class=\"text-center mb-8\"><img src=\"/static/assets/macva-1-300x71.png\" alt=\"Mačva Press Logo\" class=\"w-48 h-28 mx-auto mb-4 rounded-lg\"><h1 class=\"text-2xl font-bold text-gray-900\">Resetovanje Lozinke</h1><p class=\"text-gray-600 mt-2\">Unesite novu lozinku za vaš nalog.</p></div><div id=\"password-form\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Resetovanje Lozinke</title><meta name=\"description\" content=\"Mačva Press Resetovanje Lozinke\"><link rel=\"icon\" type=\"image/png\" href=\"/static/assets/cropped-macvaLogo-32x32.png\" sizes=\"32x32\"><link href=\"/static/css/output.css\" rel=\"stylesheet\"><script src=\"/static/js/htmx.min.js\"></script></head><div class=\"min-h-screen bg-gray-50 flex items-center justify-center p-4\"><div class=\"bg-white rounded-lg shadow-lg p-8 max-w-md w-full\"><div class=\"text-center mb-8\"><img src=\"/static/assets/macva-1-300x71.png\" alt=\"Mačva Press Logo\" class=\"w-48 h-28 mx-auto mb-4 rounded-lg\"><h1 class=\"text-2xl font-bold text-gray-900\">Resetovanje Lozinke</h1><p class=\"text-gray-600 mt-2\">Unesite novu lozinku za vaš nalog.</p></div><div id=\"password-form\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -75,7 +75,7 @@ func ResetForm(token string, resetErr ResetErr) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(token)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/passwordReset.templ`, Line: 37, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/passwordReset.templ`, Line: 38, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -93,7 +93,7 @@ func ResetForm(token string, resetErr ResetErr) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(string(resetErr))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/passwordReset.templ`, Line: 45, Col: 24}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/passwordReset.templ`, Line: 46, Col: 24}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {

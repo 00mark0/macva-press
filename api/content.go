@@ -734,6 +734,7 @@ func (server *Server) unarchiveContent(ctx echo.Context) error {
 type UpdateContentReq struct {
 	ContentID           string  `query:"content_id"`
 	Title               *string `form:"title" validate:"required"`
+	Slug                *string `form:"slug" validate:"required"`
 	ContentDescription  *string `form:"content_description" validate:"required"`
 	CategoryID          *string `form:"category_id"`
 	CommentsEnabled     *bool   `form:"comments_enabled"`
@@ -787,6 +788,12 @@ func (server *Server) updateContent(ctx echo.Context) error {
 			}
 
 			return content.Title
+		}(),
+		Slug: func() string {
+			if req.Slug != nil {
+				return utils.Slugify(*req.Slug)
+			}
+			return utils.GenerateTitleTag(utils.Slugify(*req.Title))
 		}(),
 		ContentDescription: func() string {
 			if req.ContentDescription != nil {
@@ -861,6 +868,7 @@ type CreateContentReq struct {
 	CategoryID         string `form:"category_id"`
 	Title              string `form:"title"`
 	ContentDescription string `form:"content_description"`
+	Slug               string `form:"slug"`
 }
 
 func (server *Server) createContent(ctx echo.Context) error {
@@ -901,9 +909,15 @@ func (server *Server) createContent(ctx echo.Context) error {
 	}
 
 	arg := db.CreateContentParams{
-		UserID:              userData.UserID,
-		CategoryID:          categoryID,
-		Title:               req.Title,
+		UserID:     userData.UserID,
+		CategoryID: categoryID,
+		Title:      req.Title,
+		Slug: func() string {
+			if req.Slug != "" {
+				return utils.Slugify(req.Slug)
+			}
+			return utils.GenerateTitleTag(utils.Slugify(req.Title))
+		}(),
 		ContentDescription:  req.ContentDescription,
 		CommentsEnabled:     true,
 		ViewCountEnabled:    true,
@@ -972,9 +986,15 @@ func (server *Server) createAndPublishContent(ctx echo.Context) error {
 	}
 
 	arg := db.CreateContentParams{
-		UserID:              userData.UserID,
-		CategoryID:          categoryID,
-		Title:               req.Title,
+		UserID:     userData.UserID,
+		CategoryID: categoryID,
+		Title:      req.Title,
+		Slug: func() string {
+			if req.Slug != "" {
+				return utils.Slugify(req.Slug)
+			}
+			return utils.GenerateTitleTag(utils.Slugify(req.Title))
+		}(),
 		ContentDescription:  req.ContentDescription,
 		CommentsEnabled:     true,
 		ViewCountEnabled:    true,
@@ -1082,6 +1102,7 @@ func (server *Server) listOtherContent(ctx echo.Context) error {
 			UserID:     v.UserID.String(),
 			CategoryID: v.CategoryID.String(),
 			Title:      v.Title,
+			Slug:       v.Slug,
 			Thumbnail: func() string {
 				if v.Thumbnail.Valid && v.Thumbnail.String != "" {
 					return v.Thumbnail.String
@@ -1102,6 +1123,7 @@ func (server *Server) listOtherContent(ctx echo.Context) error {
 			CreatedAt:           v.CreatedAt.Time.In(Loc).Format("02-01-06 15:04"),
 			UpdatedAt:           v.UpdatedAt.Time.In(Loc).Format("02-01-06 15:04"),
 			PublishedAt:         utils.TimeAgo(v.PublishedAt.Time.In(Loc)),
+			PublishedAtPgType:   v.PublishedAt,
 			IsDeleted:           v.IsDeleted.Bool,
 			Username:            v.Username,
 			CategoryName:        v.CategoryName,
@@ -1225,6 +1247,7 @@ func (server *Server) categoriesWithContent(ctx echo.Context) error {
 				CategoryID:   item.CategoryID,
 				CategoryName: category.CategoryName, // Use the category name from the category object
 				Title:        item.Title,
+				Slug:         item.Slug,
 				Thumbnail: func() pgtype.Text {
 					if item.Thumbnail.Valid && item.Thumbnail.String != "" {
 						return item.Thumbnail
@@ -1274,10 +1297,10 @@ func (server *Server) categoriesWithContent(ctx echo.Context) error {
 }
 
 func (server *Server) handleLikeContent(ctx echo.Context) error {
-	contentIDStr := ctx.Param("id")
-	contentID, err := utils.ParseUUID(contentIDStr, "content ID")
+	articleIDStr := ctx.Param("id")
+	articleID, err := utils.ParseUUID(articleIDStr, "article ID")
 	if err != nil {
-		log.Println("Invalid content ID format in handleLikeContent:", err)
+		log.Println("Error parsing article ID in handleLikeContent:", err)
 		return err
 	}
 
@@ -1288,7 +1311,7 @@ func (server *Server) handleLikeContent(ctx echo.Context) error {
 
 	// Check if the user already has a reaction using the efficient query
 	userReaction, err := server.store.FetchUserContentReaction(ctx.Request().Context(), db.FetchUserContentReactionParams{
-		ContentID: contentID,
+		ContentID: articleID,
 		UserID:    userData.UserID,
 	})
 
@@ -1298,7 +1321,7 @@ func (server *Server) handleLikeContent(ctx echo.Context) error {
 		if userReaction.Reaction == "like" {
 			// If already liked, remove the reaction
 			_, err = server.store.DeleteContentReaction(ctx.Request().Context(), db.DeleteContentReactionParams{
-				ContentID: contentID,
+				ContentID: articleID,
 				UserID:    userData.UserID,
 			})
 			if err != nil {
@@ -1314,7 +1337,7 @@ func (server *Server) handleLikeContent(ctx echo.Context) error {
 		} else if userReaction.Reaction == "dislike" {
 			// If disliked, change to like
 			_, err := server.store.InsertOrUpdateContentReaction(ctx.Request().Context(), db.InsertOrUpdateContentReactionParams{
-				ContentID: contentID,
+				ContentID: articleID,
 				UserID:    userData.UserID,
 				Reaction:  "like",
 			})
@@ -1332,7 +1355,7 @@ func (server *Server) handleLikeContent(ctx echo.Context) error {
 	} else {
 		// No reaction yet, add a like
 		_, err := server.store.InsertOrUpdateContentReaction(ctx.Request().Context(), db.InsertOrUpdateContentReactionParams{
-			ContentID: contentID,
+			ContentID: articleID,
 			UserID:    userData.UserID,
 			Reaction:  "like",
 		})
@@ -1349,7 +1372,7 @@ func (server *Server) handleLikeContent(ctx echo.Context) error {
 	}
 
 	// Update the content's like/dislike counts
-	_, err = server.store.UpdateContentLikeDislikeCount(ctx.Request().Context(), contentID)
+	_, err = server.store.UpdateContentLikeDislikeCount(ctx.Request().Context(), articleID)
 	if err != nil {
 		log.Println("Error updating content like and dislike count:", err)
 		return err
@@ -1357,7 +1380,7 @@ func (server *Server) handleLikeContent(ctx echo.Context) error {
 
 	// Get the updated user reaction for the response
 	updatedUserReaction, err := server.store.FetchUserContentReaction(ctx.Request().Context(), db.FetchUserContentReactionParams{
-		ContentID: contentID,
+		ContentID: articleID,
 		UserID:    userData.UserID,
 	})
 
@@ -1373,22 +1396,47 @@ func (server *Server) handleLikeContent(ctx echo.Context) error {
 		return err
 	}
 
-	// Get updated content details for rendering
-	content, err := server.store.GetContentDetails(ctx.Request().Context(), contentID)
+	content, err := server.store.GetContentDetails(ctx.Request().Context(), articleID)
 	if err != nil {
-		log.Println("Error getting content details:", err)
+		log.Println("Error fetching content by id in handleLikeContent:", err)
 		return err
 	}
 
+	convertedContent := db.GetContentBySlugRow{
+		ContentID:           content.ContentID,
+		UserID:              content.UserID,
+		CategoryID:          content.CategoryID,
+		Title:               content.Title,
+		Slug:                content.Slug,
+		Thumbnail:           content.Thumbnail,
+		ContentDescription:  content.ContentDescription,
+		CommentsEnabled:     content.CommentsEnabled,
+		ViewCountEnabled:    content.ViewCountEnabled,
+		LikeCountEnabled:    content.LikeCountEnabled,
+		DislikeCountEnabled: content.DislikeCountEnabled,
+		Status:              content.Status,
+		ViewCount:           content.ViewCount,
+		LikeCount:           content.LikeCount,
+		DislikeCount:        content.DislikeCount,
+		CommentCount:        content.CommentCount,
+		CreatedAt:           content.CreatedAt,
+		UpdatedAt:           content.UpdatedAt,
+		PublishedAt:         content.PublishedAt,
+		IsDeleted:           content.IsDeleted,
+		Username:            content.Username,
+		CategoryName:        content.CategoryName,
+		Tags:                content.Tags,
+	}
+
 	// Render the updated article stats component
-	return Render(ctx, http.StatusOK, components.ArticleStats(content, globalSettings[0], reactionStatus))
+	return Render(ctx, http.StatusOK, components.ArticleStats(convertedContent, globalSettings[0], reactionStatus))
 }
 
 func (server *Server) handleDislikeContent(ctx echo.Context) error {
-	contentIDStr := ctx.Param("id")
-	contentID, err := utils.ParseUUID(contentIDStr, "content ID")
+	articleIDStr := ctx.Param("id")
+	articleID, err := utils.ParseUUID(articleIDStr, "article ID")
 	if err != nil {
-		log.Println("Invalid content ID format in handleDislikeContent:", err)
+		log.Println("Error parsing article ID in handleLikeContent:", err)
 		return err
 	}
 
@@ -1399,7 +1447,7 @@ func (server *Server) handleDislikeContent(ctx echo.Context) error {
 
 	// Check if the user already has a reaction using the efficient query
 	userReaction, err := server.store.FetchUserContentReaction(ctx.Request().Context(), db.FetchUserContentReactionParams{
-		ContentID: contentID,
+		ContentID: articleID,
 		UserID:    userData.UserID,
 	})
 
@@ -1409,7 +1457,7 @@ func (server *Server) handleDislikeContent(ctx echo.Context) error {
 		if userReaction.Reaction == "dislike" {
 			// If already disliked, remove the reaction
 			_, err = server.store.DeleteContentReaction(ctx.Request().Context(), db.DeleteContentReactionParams{
-				ContentID: contentID,
+				ContentID: articleID,
 				UserID:    userData.UserID,
 			})
 			if err != nil {
@@ -1425,7 +1473,7 @@ func (server *Server) handleDislikeContent(ctx echo.Context) error {
 		} else if userReaction.Reaction == "like" {
 			// If liked, change to dislike
 			_, err := server.store.InsertOrUpdateContentReaction(ctx.Request().Context(), db.InsertOrUpdateContentReactionParams{
-				ContentID: contentID,
+				ContentID: articleID,
 				UserID:    userData.UserID,
 				Reaction:  "dislike",
 			})
@@ -1443,7 +1491,7 @@ func (server *Server) handleDislikeContent(ctx echo.Context) error {
 	} else {
 		// No reaction yet, add a dislike
 		_, err := server.store.InsertOrUpdateContentReaction(ctx.Request().Context(), db.InsertOrUpdateContentReactionParams{
-			ContentID: contentID,
+			ContentID: articleID,
 			UserID:    userData.UserID,
 			Reaction:  "dislike",
 		})
@@ -1460,7 +1508,7 @@ func (server *Server) handleDislikeContent(ctx echo.Context) error {
 	}
 
 	// Update the content's like/dislike counts
-	_, err = server.store.UpdateContentLikeDislikeCount(ctx.Request().Context(), contentID)
+	_, err = server.store.UpdateContentLikeDislikeCount(ctx.Request().Context(), articleID)
 	if err != nil {
 		log.Println("Error updating content like and dislike count:", err)
 		return err
@@ -1468,7 +1516,7 @@ func (server *Server) handleDislikeContent(ctx echo.Context) error {
 
 	// Get the updated user reaction for the response
 	updatedUserReaction, err := server.store.FetchUserContentReaction(ctx.Request().Context(), db.FetchUserContentReactionParams{
-		ContentID: contentID,
+		ContentID: articleID,
 		UserID:    userData.UserID,
 	})
 
@@ -1484,13 +1532,38 @@ func (server *Server) handleDislikeContent(ctx echo.Context) error {
 		return err
 	}
 
-	// Get updated content details for rendering
-	content, err := server.store.GetContentDetails(ctx.Request().Context(), contentID)
+	content, err := server.store.GetContentDetails(ctx.Request().Context(), articleID)
 	if err != nil {
-		log.Println("Error getting content details:", err)
+		log.Println("Error fetching content by id in handleLikeContent:", err)
 		return err
 	}
 
+	convertedContent := db.GetContentBySlugRow{
+		ContentID:           content.ContentID,
+		UserID:              content.UserID,
+		CategoryID:          content.CategoryID,
+		Title:               content.Title,
+		Slug:                content.Slug,
+		Thumbnail:           content.Thumbnail,
+		ContentDescription:  content.ContentDescription,
+		CommentsEnabled:     content.CommentsEnabled,
+		ViewCountEnabled:    content.ViewCountEnabled,
+		LikeCountEnabled:    content.LikeCountEnabled,
+		DislikeCountEnabled: content.DislikeCountEnabled,
+		Status:              content.Status,
+		ViewCount:           content.ViewCount,
+		LikeCount:           content.LikeCount,
+		DislikeCount:        content.DislikeCount,
+		CommentCount:        content.CommentCount,
+		CreatedAt:           content.CreatedAt,
+		UpdatedAt:           content.UpdatedAt,
+		PublishedAt:         content.PublishedAt,
+		IsDeleted:           content.IsDeleted,
+		Username:            content.Username,
+		CategoryName:        content.CategoryName,
+		Tags:                content.Tags,
+	}
+
 	// Render the updated article stats component
-	return Render(ctx, http.StatusOK, components.ArticleStats(content, globalSettings[0], reactionStatus))
+	return Render(ctx, http.StatusOK, components.ArticleStats(convertedContent, globalSettings[0], reactionStatus))
 }

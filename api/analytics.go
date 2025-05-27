@@ -434,6 +434,7 @@ func (server *Server) listTrendingContentUser(ctx echo.Context) error {
 			CategoryID:   content.CategoryID,
 			CategoryName: content.CategoryName,
 			Title:        content.Title,
+			Slug:         content.Slug,
 			Thumbnail: func() pgtype.Text {
 				if content.Thumbnail.Valid && content.Thumbnail.String != "" {
 					return content.Thumbnail

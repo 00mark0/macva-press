@@ -14,7 +14,7 @@ func (server *Server) setupRouter() {
 
 	router.Use(middleware.Gzip())
 
-	router.Use(middleware.SecureWithConfig(middleware.SecureConfig{
+	/*router.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval';",
 		XFrameOptions:         "DENY",
 		XSSProtection:         "1; mode=block",
@@ -28,7 +28,7 @@ func (server *Server) setupRouter() {
 			res.Header().Set("X-Content-Type-Options", "nosniff")
 			return next(c)
 		}
-	})
+	})*/
 
 	// Create rate limiters for different types of operations
 	// For authentication - very strict limits to prevent brute force attacks
@@ -127,9 +127,10 @@ func (server *Server) setupRouter() {
 	// User Page Routes - no rate limiting for page views
 	router.GET("/", server.homePage)
 	router.GET("/pretraga", server.searchResultsPage)
-	router.GET("/kategorije/:category/:id", server.categoriesPage)
-	router.GET("/oznake/:tag/:id", server.tagPage)
-	router.GET("/:article/:id", server.articlePage)
+	router.GET("/kategorije/:slug", server.categoriesPage)
+	router.GET("/oznake/:slug", server.tagPage)
+	//router.GET("/:article/:id", server.articlePage)
+	router.GET("/:year/:month/:slug", server.articlePage)
 	authRoutes.GET("/podesavanja", server.userSettingsPage)
 
 	// ==== API Routes with Rate Limiting ====
