@@ -608,7 +608,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if len(content) == nextLimit {
+		if len(content) == nextLimit-1 {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "<div class=\"text-center mt-8\"><button hx-get=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

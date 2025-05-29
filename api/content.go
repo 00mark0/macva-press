@@ -1095,6 +1095,13 @@ func (server *Server) listOtherContent(ctx echo.Context) error {
 		return err
 	}
 
+	// ✅ Skip the first item (most recent), safely handling small slices
+	if len(data) > 1 {
+		data = data[1:]
+	} else {
+		data = []db.ListPublishedContentLimitRow{}
+	}
+
 	var content []components.ListPublishedContentRes
 	for _, v := range data {
 		content = append(content, components.ListPublishedContentRes{
@@ -1146,37 +1153,10 @@ type CategoryWithContent struct {
 
 // This function just generates the component and can be reused
 func (server *Server) GenerateNewsSliderComponent(ctx context.Context) (templ.Component, error) {
-	// Fetch categories (limit to 20 for example)
-	categories, err := server.store.ListCategories(ctx, 20)
+	content, err := server.store.ListPublishedContentLimit(ctx, 1)
 	if err != nil {
-		log.Print("Error fetching categories in newsSlider:", err)
+		log.Println("Error listing published content in newsSlider:", err)
 		return nil, err
-	}
-
-	// Create a map to store content by category ID
-	contentByCategory := make(map[pgtype.UUID][]db.ListContentByCategoryRow)
-	// Filtered categories that actually have content
-	var filteredCategories []db.Category
-
-	// Fetch content for each category
-	for _, category := range categories {
-		contentParams := db.ListContentByCategoryParams{
-			CategoryID: category.CategoryID,
-			Limit:      1, // Limit number of articles per category
-			Offset:     0,
-		}
-		content, err := server.store.ListContentByCategory(ctx, contentParams)
-		if err != nil {
-			log.Printf("Error fetching content for category %v: %v", category.CategoryName, err)
-			continue // Skip this category if content fetch fails
-		}
-		if len(content) == 0 {
-			continue // Skip this category if no content is found
-		}
-		// Store content in the map using category ID as the key
-		contentByCategory[category.CategoryID] = content
-		// Add category to filtered list since it has content
-		filteredCategories = append(filteredCategories, category)
 	}
 
 	globalSettings, err := server.store.GetGlobalSettings(ctx)
@@ -1186,7 +1166,7 @@ func (server *Server) GenerateNewsSliderComponent(ctx context.Context) (templ.Co
 	}
 
 	// Return the component
-	return components.NewsSlider(filteredCategories, contentByCategory, globalSettings[0]), nil
+	return components.NewsSlider(content, globalSettings[0]), nil
 }
 
 func (server *Server) newsSlider(ctx echo.Context) error {

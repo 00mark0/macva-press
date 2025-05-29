@@ -210,7 +210,7 @@ templ OtherContent(content []ListPublishedContentRes, nextLimit int, globalSetti
 			</div>
 		}
 	</div>
-	if len(content) == nextLimit {
+	if len(content) == nextLimit - 1 {
 		<div class="text-center mt-8">
 			<button
 				hx-get={ fmt.Sprintf("/api/content/other?limit=%d", nextLimit) }

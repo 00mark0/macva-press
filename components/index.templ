@@ -107,160 +107,18 @@ templ main(prerenderedSlider templ.Component) {
 	</section>
 }
 
-templ NewsSlider(categories []db.Category, contentByCategory map[pgtype.UUID][]db.ListContentByCategoryRow, globalSettings db.GlobalSetting) {
+templ NewsSlider(content []db.ListPublishedContentLimitRow, globalSettings db.GlobalSetting) {
 	<div class="news-slider-container mx-auto px-4 h-full">
-		<!-- Category Navigation - FIXED -->
-		<div class="category-nav px-4 flex justify-start mb-6 overflow-x-auto py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg scroll-smooth">
-			<div class="flex gap-4 min-w-full" x-ref="categoryContainer">
-				for i, category := range categories {
-					<button
-						data-slide={ fmt.Sprint(i) }
-						class="category-tab whitespace-nowrap px-2 cursor-pointer py-2 text-md font-medium transition-all duration-300 ease-in-out border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 dark:hover:text-blue-400 dark:hover:border-blue-400 focus:outline-none text-gray-600 dark:text-gray-300"
-					>
-						{ category.CategoryName }
-					</button>
-				}
-			</div>
-		</div>
 		<!-- Slider Container -->
 		<div class="slider-wrapper w-full h-full relative overflow-hidden">
 			<div class="slider flex w-full h-full shrink-0 aspect-video scrollbar-hide overflow-x-auto overflow-y-hidden scroll-smooth rounded-lg shadow-lg">
-				for i, category := range categories {
-					<div
-						id={ fmt.Sprintf("slide-%d", i) }
-						class="slider-item flex flex-col shrink-0 h-full w-full scroll-snap-align-start"
-					>
-						if len(contentByCategory[category.CategoryID]) > 0 {
-							@ArticleCardSlider(contentByCategory[category.CategoryID][0], globalSettings)
-						}
-					</div>
-				}
-			</div>
-			<!-- Slider Controls -->
-			<div id="slider-controls" class="slider-controls w-full flex justify-center gap-2 mt-4">
-				for i, _ := range categories {
-					<button
-						data-slide={ fmt.Sprint(i) }
-						aria-label={ fmt.Sprintf("Go to slide %d", i+1) }
-						class="slider-control cursor-pointer w-3 h-3 bg-gray-300 hover:bg-blue-500 rounded-full transition-all duration-300 ease-in-out"
-					></button>
-				}
+				@ArticleCardSlider(content[0], globalSettings)
 			</div>
 		</div>
 	</div>
-	<script>
-		document.addEventListener('DOMContentLoaded', function() {
-    	    const slider = document.querySelector('.slider');
-    	    const slides = document.querySelectorAll('.slider-item');
-    	    const controls = document.querySelectorAll('.slider-control');
-    	    const categoryTabs = document.querySelectorAll('.category-tab');
-    	    const categoryNav = document.querySelector('.category-nav');
-    	    
-    	    // Function to update active states
-    	    function updateActiveStates(index) {
-    	        // Update category tabs
-    	        categoryTabs.forEach((tab, i) => {
-    	            if (i === index) {
-    	                tab.classList.add('text-blue-500', 'border-blue-500');
-    	                tab.classList.remove('text-gray-600', 'dark:text-gray-300', 'border-transparent');
-    	                
-    	                // Ensure the selected tab is visible (scrolled into view)
-    	                const tabRect = tab.getBoundingClientRect();
-    	                const navRect = categoryNav.getBoundingClientRect();
-    	                
-    	                if (tabRect.left < navRect.left) {
-    	                    categoryNav.scrollLeft += (tabRect.left - navRect.left - 10);
-    	                } else if (tabRect.right > navRect.right) {
-    	                    categoryNav.scrollLeft += (tabRect.right - navRect.right + 10);
-    	                }
-    	            } else {
-    	                tab.classList.remove('text-blue-500', 'border-blue-500');
-    	                tab.classList.add('text-gray-600', 'dark:text-gray-300', 'border-transparent');
-    	            }
-    	        });
-    	        
-    	        // Update slider controls
-    	        controls.forEach((control, i) => {
-    	            if (i === index) {
-    	                control.classList.add('bg-blue-500', 'w-4', 'h-4');
-    	                control.classList.remove('bg-gray-300', 'w-3', 'h-3');
-    	            } else {
-    	                control.classList.remove('bg-blue-500', 'w-4', 'h-4');
-    	                control.classList.add('bg-gray-300', 'w-3', 'h-3');
-    	            }
-    	        });
-    	    }
-    	    
-    	    // Initial active state
-    	    updateActiveStates(0);
-    	    
-    	    // Slider control event listeners
-    	    controls.forEach((control, index) => {
-    	        control.addEventListener('click', () => {
-    	            const targetSlide = slides[index];
-    	            targetSlide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
-    	            updateActiveStates(index);
-    	        });
-    	    });
-    	    
-    	    // Category tab event listeners
-    	    categoryTabs.forEach((tab, index) => {
-    	        tab.addEventListener('click', () => {
-    	            const targetSlide = slides[index];
-    	            targetSlide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
-    	            updateActiveStates(index);
-    	        });
-    	    });
-    	    
-    	    // Intersection Observer to handle scroll-based active state
-    	    const observerOptions = {
-    	        root: slider,
-    	        threshold: 0.5
-    	    };
-    	    
-    	    const observer = new IntersectionObserver((entries) => {
-    	        entries.forEach(entry => {
-    	            if (entry.isIntersecting) {
-    	                const index = Array.from(slides).indexOf(entry.target);
-    	                updateActiveStates(index);
-    	            }
-    	        });
-    	    }, observerOptions);
-    	    
-    	    slides.forEach(slide => observer.observe(slide));
-    	});
-	</script>
-	<style>
-		.slider {
-    	    box-shadow: 0 1.5rem 3rem -0.75rem hsla(0, 0%, 0%, 0.25);
-    	    border-radius: 0.5rem;
-    	    scroll-snap-type: x mandatory;
-    	    scroll-behavior: smooth;
-    	    -webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS */
-    	}
-    	.slider::-webkit-scrollbar {
-    	    display: none; /* Safari and Chrome */
-    	}
-    	/* Ensure each child (slide) aligns with the scroll-snap */
-    	.slider > div {
-    	    scroll-snap-align: start; /* Snap the slides to the start when scrolled */
-    	}
-    	/* Ensure category tabs don't get cut off */
-    	.category-nav {
-    	    -ms-overflow-style: none;
-    	    scrollbar-width: none;
-    	}
-    	.category-nav::-webkit-scrollbar {
-    	    display: none;
-    	}
-    	/* Make sure the active tab is fully visible */
-    	.category-tab.text-blue-500 {
-    	    position: relative;
-    	}
-	</style>
 }
 
-templ ArticleCardSlider(article db.ListContentByCategoryRow, globalSettings db.GlobalSetting) {
+templ ArticleCardSlider(article db.ListPublishedContentLimitRow, globalSettings db.GlobalSetting) {
 	<article class="flex flex-col shrink-0 bg-white shadow-lg rounded-lg overflow-hidden sm:h-full w-full relative">
 		<div class="group relative bg-white shadow-md border-b-2 border-gray-200 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-gray-800 flex flex-col h-full w-full" style="z-index: 10;">
 			if article.Thumbnail.Valid && article.Thumbnail.String != "" {
