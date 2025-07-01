@@ -470,7 +470,7 @@ func (server *Server) listTrendingContentUser(ctx echo.Context) error {
 
 	target := "#popular-content"
 
-	title := "Popularno"
+	title := "Популарно"
 
 	return Render(ctx, http.StatusOK, components.GridCards(trendingContent, globalSettings[0], int(nextLimit), url, target, title))
 }

@@ -132,7 +132,7 @@ templ SearchResults(content []db.SearchContentRow, searchCount int64, searchTerm
 }
 
 templ OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettings db.GlobalSetting) {
-	<h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-200">Nedavno</h3>
+	<h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-200">Недавно</h3>
 	<div class="grid gap-6">
 		for _, v := range content {
 			<div class="group flex bg-white shadow-md border-b-2 border-gray-200 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-gray-800 rounded-lg overflow-hidden">

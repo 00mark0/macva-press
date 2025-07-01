@@ -408,7 +408,7 @@ func OtherContent(content []ListPublishedContentRes, nextLimit int, globalSettin
 			templ_7745c5c3_Var21 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<h3 class=\"text-xl font-bold mb-4 text-gray-800 dark:text-gray-200\">Nedavno</h3><div class=\"grid gap-6\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<h3 class=\"text-xl font-bold mb-4 text-gray-800 dark:text-gray-200\">Недавно</h3><div class=\"grid gap-6\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -40,10 +40,10 @@ func GenerateMetaDescription(content string) string {
 
 	// Add sentences to the description while keeping it under the 160 char limit
 	for _, sentence := range sentences {
-		if len(description)+len(sentence) > 160 {
+		if len(description)+len(sentence) > 320 {
 			break
 		}
-		description += sentence
+		description += sentence + "- МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC"
 	}
 
 	// If we couldn't build a description, fall back to the default
@@ -53,4 +53,9 @@ func GenerateMetaDescription(content string) string {
 
 	// Return the description trimmed to remove any extra spaces at the ends
 	return strings.TrimSpace(description)
+}
+
+// Function to convert a string to all uppercase
+func ToUpper(s string) string {
+	return strings.ToUpper(s)
 }

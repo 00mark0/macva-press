@@ -62,7 +62,7 @@ templ Article(content db.GetContentBySlugRow, globalSettings db.GlobalSetting, u
 			<section id="share-buttons" class="mt-4">
 				<div class="flex flex-wrap items-start flex-col gap-4">
 					<!-- Stats and interactions -->
-					<p class="text-sm text-gray-600 dark:text-gray-300">Podelite</p>
+					<p class="text-sm text-gray-600 dark:text-gray-300">Поделите</p>
 					<div class="flex flex-wrap items-center gap-4">
 						<!-- Share buttons -->
 						<!-- Facebook Share -->
@@ -97,7 +97,7 @@ templ Article(content db.GetContentBySlugRow, globalSettings db.GlobalSetting, u
 		if content.CommentsEnabled && !globalSettings.DisableComments {
 			<!-- Comment Form -->
 			<div class="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-				<h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Dodajte komentar</h2>
+				<h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Додајте коментар</h2>
 				<form hx-post={ fmt.Sprintf("/api/content/comments/%s", content.ContentID.String()) } hx-target="#article-comments" hx-swap="innerHTML" hx-on::after-request="if(event.detail.successful) this.reset()" class="space-y-4">
 					<div class="relative">
 						<textarea
@@ -105,7 +105,7 @@ templ Article(content db.GetContentBySlugRow, globalSettings db.GlobalSetting, u
 							id="comment_text"
 							rows="3"
 							class="w-full px-3 py-2 text-gray-700 dark:text-gray-200 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
-							placeholder="Podelite svoje mišljenje..."
+							placeholder="Поделите своје мишљење..."
 							required
 						></textarea>
 						<button
@@ -122,7 +122,7 @@ templ Article(content db.GetContentBySlugRow, globalSettings db.GlobalSetting, u
 							type="submit"
 							class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
 						>
-							Objavi komentar
+							Објави коментар
 						</button>
 					</div>
 				</form>
@@ -859,9 +859,9 @@ templ ArticleStats(v db.GetContentBySlugRow, globalSettings db.GlobalSetting, us
 	<div class="flex flex-wrap items-center justify-between gap-4">
 		<!-- Publishing info -->
 		<div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-			<span class="inline-block mr-4 font-medium">By { v.Username }</span>
+			<span class="inline-block mr-4 font-medium">{ v.Username }</span>
 			<time datetime={ v.PublishedAt.Time.Format("2006-01-02") } class="inline-block">
-				{ v.PublishedAt.Time.Format("January 2, 2006 at 3:04 PM") }
+				{ v.PublishedAt.Time.Format("02.01.06, 15:04") }
 			</time>
 		</div>
 		<!-- Stats and interactions -->
@@ -943,9 +943,9 @@ templ ArticleComments(contentID string, comments []db.ListContentCommentsRow, us
 				<div class="flex items-center">
 					<h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mr-2">
 						if commentCount == 1 {
-							{ fmt.Sprint(commentCount) } Komentar
+							{ fmt.Sprint(commentCount) } Коментар
 						} else {
-							{ fmt.Sprint(commentCount) } Komentara 
+							{ fmt.Sprint(commentCount) } Коментара
 						}
 					</h3>
 					<!-- Refresh Button -->
@@ -966,7 +966,7 @@ templ ArticleComments(contentID string, comments []db.ListContentCommentsRow, us
 					</button>
 				</div>
 				<div class="flex flex-col sm:flex-row items-center space-x-2">
-					<span class="text-sm text-gray-600 dark:text-gray-400">Sortiraj po:</span>
+					<span class="text-sm text-gray-600 dark:text-gray-400">Сортирај по:</span>
 					<select
 						class="text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
 						id="comment-sort-select"
@@ -980,14 +980,14 @@ templ ArticleComments(contentID string, comments []db.ListContentCommentsRow, us
 								selected="selected"
 							}
 						>
-							Najnoviji
+							Најновији
 						</option>
 						<option
 							data-url={ fmt.Sprintf("/api/content/comments/%s/score?limit=%d", contentID, nextLimit-10) }
 							if strings.Contains(url, "/score") {
 								selected="selected"
 							}
-						>Najbolji</option>
+						>Најбољи</option>
 					</select>
 				</div>
 			</div>
@@ -997,7 +997,7 @@ templ ArticleComments(contentID string, comments []db.ListContentCommentsRow, us
 			<div id="comments-container" class="space-y-6">
 				if len(comments) == 0 {
 					<div class="text-center py-8 text-gray-500 dark:text-gray-400">
-						<p>Trenutno nema komentara. Podelite svoje mišljenje prvi!</p>
+						<p>Тренутно нема коментара. Поделите своје мишљење први!</p>
 					</div>
 				} else {
 					for _, comment := range comments {
@@ -1014,7 +1014,7 @@ templ ArticleComments(contentID string, comments []db.ListContentCommentsRow, us
 						hx-trigger="click"
 						class="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
 					>
-						Učitaj više
+						Учитај више
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							class="h-4 w-4 ml-2"
@@ -1047,7 +1047,7 @@ templ CommentItem(comment db.ListContentCommentsRow, userData db.GetUserByIDRow,
 					<span class="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full inline-block mx-1"></span>
 					<span class="text-xs text-gray-500 dark:text-gray-400">
 						if comment.UpdatedAt.Valid {
-							{ utils.TimeAgo(comment.UpdatedAt.Time) } (izmenjeno)
+							{ utils.TimeAgo(comment.UpdatedAt.Time) } (измењено)
 						} else {
 							{ utils.TimeAgo(comment.CreatedAt.Time) }
 						}
@@ -1097,7 +1097,7 @@ templ CommentItem(comment db.ListContentCommentsRow, userData db.GetUserByIDRow,
 										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
 										</svg>
-										Obriši
+										Обриши
 									</button>
 								}
 								if userData.Role == "admin" {
@@ -1113,7 +1113,7 @@ templ CommentItem(comment db.ListContentCommentsRow, userData db.GetUserByIDRow,
 										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
 										</svg>
-										Obriši (Admin)
+										Обриши (Админ)
 									</button>
 								}
 							</div>
@@ -1130,7 +1130,7 @@ templ CommentItem(comment db.ListContentCommentsRow, userData db.GetUserByIDRow,
 					onclick="toggleTruncate(this)"
 					class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium mt-1"
 				>
-					Prikaži više
+					Прикажи више
 				</button>
 			}
 			<!-- Edit form -->
@@ -1142,7 +1142,7 @@ templ CommentItem(comment db.ListContentCommentsRow, userData db.GetUserByIDRow,
 							name="edit_text"
 							rows="2"
 							class="w-full resize-none px-3 py-2 text-md text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900"
-							placeholder="Uredite..."
+							placeholder="Уредите..."
 							required
 						>{ comment.CommentText }</textarea>
 						<button
@@ -1159,7 +1159,7 @@ templ CommentItem(comment db.ListContentCommentsRow, userData db.GetUserByIDRow,
 								type="submit"
 								class="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 							>
-								Uredi
+								Уреди
 							</button>
 							<button
 								id={ fmt.Sprintf("cancel-edit-%s", comment.CommentID.String()) }
@@ -1167,7 +1167,7 @@ templ CommentItem(comment db.ListContentCommentsRow, userData db.GetUserByIDRow,
 								onclick="hideEditForm(this)"
 								class="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-md focus:outline-none"
 							>
-								Odustani
+								Одустани
 							</button>
 						</div>
 					</div>
@@ -1205,7 +1205,7 @@ templ CommentItem(comment db.ListContentCommentsRow, userData db.GetUserByIDRow,
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
 					</svg>
-					<span>Odgovori</span>
+					<span>Одговори</span>
 				</button>
 			</div>
 			<!-- Reply Form -->
@@ -1220,7 +1220,7 @@ templ CommentItem(comment db.ListContentCommentsRow, userData db.GetUserByIDRow,
 							name="reply_text"
 							rows="2"
 							class="w-full resize-none px-3 py-2 text-md text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900"
-							placeholder="Odgovorite..."
+							placeholder="Одговорите..."
 							required
 						></textarea>
 						<button
@@ -1235,14 +1235,14 @@ templ CommentItem(comment db.ListContentCommentsRow, userData db.GetUserByIDRow,
 								type="submit"
 								class="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 							>
-								Odgovori
+								Одговори
 							</button>
 							<button
 								type="button"
 								onclick="hideReplyForm(this)"
 								class="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-md focus:outline-none"
 							>
-								Odustani
+								Откажи
 							</button>
 						</div>
 					</div>
@@ -1272,7 +1272,7 @@ templ CommentReplyItem(comment db.ListContentCommentsRow, userData db.GetUserByI
 					<span class="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full inline-block mx-1"></span>
 					<span class="text-xs text-gray-500 dark:text-gray-400">
 						if comment.UpdatedAt.Valid {
-							{ utils.TimeAgo(comment.UpdatedAt.Time) } (izmenjeno)
+							{ utils.TimeAgo(comment.UpdatedAt.Time) } (измењено)
 						} else {
 							{ utils.TimeAgo(comment.CreatedAt.Time) }
 						}
@@ -1306,7 +1306,7 @@ templ CommentReplyItem(comment db.ListContentCommentsRow, userData db.GetUserByI
 										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
 										</svg>
-										Uredi
+										Уреди
 									</button>
 								}
 								if comment.UserID == userData.UserID {
@@ -1322,7 +1322,7 @@ templ CommentReplyItem(comment db.ListContentCommentsRow, userData db.GetUserByI
 										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
 										</svg>
-										Obriši
+										Обриши
 									</button>
 								}
 								if userData.Role == "admin" {
@@ -1338,7 +1338,7 @@ templ CommentReplyItem(comment db.ListContentCommentsRow, userData db.GetUserByI
 										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
 										</svg>
-										Obriši (Admin)
+										Обриши (Админ)
 									</button>
 								}
 							</div>
@@ -1364,7 +1364,7 @@ templ CommentReplyItem(comment db.ListContentCommentsRow, userData db.GetUserByI
 					onclick="toggleTruncate(this)"
 					class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium mt-1"
 				>
-					Prikaži više
+					Прикажи више
 				</button>
 			}
 			<!-- Edit form -->
@@ -1376,7 +1376,7 @@ templ CommentReplyItem(comment db.ListContentCommentsRow, userData db.GetUserByI
 							name="edit_text"
 							rows="2"
 							class="w-full resize-none px-3 py-2 text-md text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900"
-							placeholder="Uredite..."
+							placeholder="Уредите..."
 							required
 						>{ comment.CommentText }</textarea>
 						<button
@@ -1393,7 +1393,7 @@ templ CommentReplyItem(comment db.ListContentCommentsRow, userData db.GetUserByI
 								type="submit"
 								class="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 							>
-								Uredi
+								Уреди
 							</button>
 							<button
 								id={ fmt.Sprintf("cancel-edit-%s", comment.CommentID.String()) }
@@ -1401,7 +1401,7 @@ templ CommentReplyItem(comment db.ListContentCommentsRow, userData db.GetUserByI
 								onclick="hideEditForm(this)"
 								class="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-md focus:outline-none"
 							>
-								Odustani
+								Откажи
 							</button>
 						</div>
 					</div>
@@ -1439,7 +1439,7 @@ templ CommentReplyItem(comment db.ListContentCommentsRow, userData db.GetUserByI
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
 					</svg>
-					<span>Odgovori</span>
+					<span>Одговори</span>
 				</button>
 			</div>
 			<!-- Reply Form -->
@@ -1455,7 +1455,7 @@ templ CommentReplyItem(comment db.ListContentCommentsRow, userData db.GetUserByI
 							name="reply_text"
 							rows="2"
 							class="w-full resize-none px-3 py-2 text-md text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900"
-							placeholder="Odgovorite..."
+							placeholder="Одговорите..."
 							required
 						></textarea>
 						<button
@@ -1471,14 +1471,14 @@ templ CommentReplyItem(comment db.ListContentCommentsRow, userData db.GetUserByI
 								class="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 								hx-on:after-request="hideReplyForm(this)"
 							>
-								Odgovori
+								Одговори
 							</button>
 							<button
 								type="button"
 								onclick="hideReplyForm(this)"
 								class="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-md focus:outline-none"
 							>
-								Odustani
+								Откажи
 							</button>
 						</div>
 					</div>
@@ -1523,7 +1523,7 @@ templ CommentActions(comment db.Comment, userData db.GetUserByIDRow, userReactio
 				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
 				</svg>
-				<span>Odgovori</span>
+				<span>Одговори</span>
 			</button>
 		</div>
 	</div>
@@ -1553,9 +1553,9 @@ templ CommentReplyInfo(replyCount int, adminPfp string, commentID string) {
 					</div>
 				}
 				if replyCount == 1 {
-					<span>{ fmt.Sprint(replyCount) } odgovor</span>
+					<span>{ fmt.Sprint(replyCount) } одговор</span>
 				} else {
-					<span>{ fmt.Sprint(replyCount) } odgovora</span>
+					<span>{ fmt.Sprint(replyCount) } одговора</span>
 				}
 			</button>
 		</div>
@@ -1611,7 +1611,7 @@ templ CommentReplyList(replies []db.ListContentCommentsRow, userData db.GetUserB
 				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
 				</svg>
-				<span>Prikaži više odgovora</span>
+				<span>Прикажи више одговора</span>
 			</button>
 		</div>
 	}

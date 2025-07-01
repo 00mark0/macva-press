@@ -38,7 +38,7 @@ func UserSettings(props UserSettingsProps) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-white dark:bg-black text-black dark:text-white rounded-lg shadow-lg space-y-6 min-h-screen mx-auto\"><!-- Profile Settings Section --><div class=\"p-5 space-y-5\"><h2 class=\"text-xl font-semibold text-black dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2\">Podešavanja Profila</h2><div class=\"flex flex-col md:flex-row gap-6\"><!-- Profile Picture --><div class=\"w-full md:w-1/3\"><div class=\"flex flex-col items-center\"><div id=\"update-pfp-admin\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-white dark:bg-black text-black dark:text-white rounded-lg shadow-lg space-y-6 min-h-screen mx-auto\"><!-- Profile Settings Section --><div class=\"p-5 space-y-5\"><h2 class=\"text-xl font-semibold text-black dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2\">Подешавања Профила</h2><div class=\"flex flex-col md:flex-row gap-6\"><!-- Profile Picture --><div class=\"w-full md:w-1/3\"><div class=\"flex flex-col items-center\"><div id=\"update-pfp-admin\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -59,7 +59,7 @@ func UserSettings(props UserSettingsProps) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" hx-encoding=\"multipart/form-data\" hx-target=\"#update-pfp-admin\" hx-swap=\"innerHTML\"><label for=\"pfp-upload\" class=\"px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm cursor-pointer transition-colors\">Promeni Profilnu Sliku <input id=\"pfp-upload\" name=\"pfp\" type=\"file\" accept=\"image/*\" class=\"sr-only\" hx-trigger=\"change\" hx-on:change=\"document.getElementById(&#39;upload-pfp-form&#39;).requestSubmit()\"></label></form></div></div><!-- Username Form --><div class=\"w-full md:w-2/3\"><form hx-put=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" hx-encoding=\"multipart/form-data\" hx-target=\"#update-pfp-admin\" hx-swap=\"innerHTML\"><label for=\"pfp-upload\" class=\"px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm cursor-pointer transition-colors\">Промени Профилну Слику <input id=\"pfp-upload\" name=\"pfp\" type=\"file\" accept=\"image/*\" class=\"sr-only\" hx-trigger=\"change\" hx-on:change=\"document.getElementById(&#39;upload-pfp-form&#39;).requestSubmit()\"></label></form></div></div><!-- Username Form --><div class=\"w-full md:w-2/3\"><form hx-put=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -72,7 +72,7 @@ func UserSettings(props UserSettingsProps) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-trigger=\"submit\" hx-target=\"#update-user-modal\" hx-swap=\"innerHTML\" class=\"space-y-4\"><div><label for=\"username\" class=\"block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1\">Korisničko Ime</label> <input type=\"text\" id=\"username\" name=\"username\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-trigger=\"submit\" hx-target=\"#update-user-modal\" hx-swap=\"innerHTML\" class=\"space-y-4\"><div><label for=\"username\" class=\"block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1\">Корисничко Име</label> <input type=\"text\" id=\"username\" name=\"username\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -102,7 +102,7 @@ func UserSettings(props UserSettingsProps) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" class=\"cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors text-sm\">Sačuvaj promene</button></form></div></div></div><!-- Password Reset Section --><div class=\"px-5 pb-5 space-y-4\"><h2 class=\"text-xl font-semibold text-black dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2\">Podešavanja Lozinke</h2><div class=\"bg-gray-100 dark:bg-gray-800 p-4 rounded\"><div class=\"flex items-center justify-between\"><div><h3 class=\"text-md font-medium text-black dark:text-white\">Promeni Lozinku</h3><p class=\"text-sm text-gray-600 dark:text-gray-400\">Pošalji link za promenu lozinke</p></div><button hx-post=\"/api/send-password-reset\" hx-trigger=\"click\" hx-target=\"#update-user-modal\" hx-swap=\"innerHTML\" class=\"cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors text-sm\">Pošalji Link</button></div></div></div></div><div id=\"update-user-modal\" class=\"fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" class=\"cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors text-sm\">Сачувај Промене</button></form></div></div></div><!-- Password Reset Section --><div class=\"px-5 pb-5 space-y-4\"><h2 class=\"text-xl font-semibold text-black dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2\">Подешавања Лозинке</h2><div class=\"bg-gray-100 dark:bg-gray-800 p-4 rounded\"><div class=\"flex items-center justify-between\"><div><h3 class=\"text-md font-medium text-black dark:text-white\">Промени Лозинку</h3><p class=\"text-sm text-gray-600 dark:text-gray-400\">Пошаљи линк за промену лозинке</p></div><button hx-post=\"/api/send-password-reset\" hx-trigger=\"click\" hx-target=\"#update-user-modal\" hx-swap=\"innerHTML\" class=\"cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors text-sm\">Пошаљи Линк</button></div></div></div></div><div id=\"update-user-modal\" class=\"fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

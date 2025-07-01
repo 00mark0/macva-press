@@ -40,20 +40,20 @@ func (server *Server) homePage(ctx echo.Context) error {
 
 	// Prepare meta information dynamically
 	meta := components.Meta{
-		Title:       "Mačva Press | Vaš izvor vesti", // More localized
-		Description: "Najnovije vesti i dešavanja iz Mačve i Srbije – budite u toku sa svim bitnim informacijama.",
+		Title:       "МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC", // More localized
+		Description: "- МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC -",
 		Canonical:   BaseUrl, // Update with your actual domain
 		OpenGraph: components.OpenGraphMeta{
-			Title:       "Mačva Press | Vesti iz srca Mačve i Srbije",
-			Description: "Pouzdane, tačne i pravovremene informacije o događajima u Mačvi i regionu.",
+			Title:       "Mačva Press Bogatić - Novosti iz Mačve",
+			Description: "- МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC -",
 			URL:         BaseUrl, // Update with your actual domain
 			Type:        "website",
 			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Prepare an Open Graph image
 		},
 		Twitter: components.TwitterCardMeta{
 			Card:        "summary_large_image",
-			Title:       "Mačva Press | Prava vest u pravo vreme",
-			Description: "Najnovije lokalne i regionalne vesti iz Mačve – obavešteni, povezani, korak ispred.",
+			Title:       "Mačva Press Bogatić - Novosti iz Mačve",
+			Description: "- МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC -",
 			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Prepare a Twitter card image
 			Creator:     "@MacvaNews",                                  // Optional: your Twitter handle
 		},
@@ -862,20 +862,20 @@ func (server *Server) categoriesPage(ctx echo.Context) error {
 
 	// Prepare meta information dynamically for the search page
 	meta := components.Meta{
-		Title:       "Mačva Press | " + category.CategoryName, // Već promenjeno za stranicu kategorija
-		Description: "Istražite vesti po kategorijama i saznajte najnovija dešavanja iz Mačve i Srbije.",
+		Title:       utils.ToUpper(category.CategoryName) + " Arhiva - МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC", // Već promenjeno za stranicu kategorija
+		Description: utils.ToUpper(category.CategoryName) + " Arhiva - МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC",
 		Canonical:   BaseUrl + "/kategorije/" + utils.Slugify(category.CategoryName), // Ažurirano za URL stranice kategorija
 		OpenGraph: components.OpenGraphMeta{
-			Title:       "Mačva Press | " + category.CategoryName,
-			Description: "Pregledajte vesti iz različitih kategorija i pratite najvažnije teme iz Mačve i Srbije.",
+			Title:       utils.ToUpper(category.CategoryName) + " Arhiva - МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC",
+			Description: utils.ToUpper(category.CategoryName) + " Arhiva - МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC",
 			URL:         BaseUrl + "/kategorije/" + utils.Slugify(category.CategoryName), // Ažurirano za URL stranice kategorija
 			Type:        "website",
 			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Koristi istu sliku
 		},
 		Twitter: components.TwitterCardMeta{
 			Card:        "summary_large_image",
-			Title:       "Mačva Press | " + category.CategoryName,
-			Description: "Pronađite najnovije vesti razvrstane po kategorijama i budite u toku sa aktuelnim dešavanjima.",
+			Title:       utils.ToUpper(category.CategoryName) + " Arhiva - МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC",
+			Description: utils.ToUpper(category.CategoryName) + " Arhiva - МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC",
 			Image:       BaseUrl + "/static/assets/macva-1-300x71.png", // Koristi istu sliku
 			Creator:     "@MacvaNews",                                  // Opcionalno: vaš Twitter nalog
 		},
@@ -1073,11 +1073,11 @@ func (server *Server) articlePage(ctx echo.Context) error {
 
 	// Prepare meta information dynamically for the search page
 	meta := components.Meta{
-		Title:       utils.GenerateTitleTag(article.Title), // Već promenjeno za stranicu kategorija
+		Title:       utils.ToUpper(article.Title) + " - МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC", // Već promenjeno za stranicu kategorija
 		Description: utils.GenerateMetaDescription(article.ContentDescription),
 		Canonical:   BaseUrl + "/" + utils.PrettyURL(article.Slug, article.PublishedAt.Time), // Ažurirano za URL stranice kategorija
 		OpenGraph: components.OpenGraphMeta{
-			Title:       utils.GenerateTitleTag(article.Title),
+			Title:       utils.ToUpper(article.Title) + " - МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC",
 			Description: utils.GenerateMetaDescription(article.ContentDescription),
 			URL:         BaseUrl + "/" + utils.PrettyURL(article.Slug, article.PublishedAt.Time), // Ažurirano za URL stranice kategorija
 			Type:        "website",
@@ -1085,7 +1085,7 @@ func (server *Server) articlePage(ctx echo.Context) error {
 		},
 		Twitter: components.TwitterCardMeta{
 			Card:        "summary_large_image",
-			Title:       utils.GenerateTitleTag(article.Title),
+			Title:       utils.ToUpper(article.Title) + " - МАЧВА ПРЕС БОГАТИЋ - NOVOSTI IZ MAČVE - BOGATIĆ - ŠABAC",
 			Description: utils.GenerateMetaDescription(article.ContentDescription),
 			Image:       BaseUrl + article.Thumbnail.String, // Koristi istu sliku
 			Creator:     "@MacvaNews",                       // Opcionalno: vaš Twitter nalog

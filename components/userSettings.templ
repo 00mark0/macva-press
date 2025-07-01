@@ -13,7 +13,7 @@ templ UserSettings(props UserSettingsProps) {
 	<div class="bg-white dark:bg-black text-black dark:text-white rounded-lg shadow-lg space-y-6 min-h-screen mx-auto">
 		<!-- Profile Settings Section -->
 		<div class="p-5 space-y-5">
-			<h2 class="text-xl font-semibold text-black dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Podešavanja Profila</h2>
+			<h2 class="text-xl font-semibold text-black dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Подешавања Профила</h2>
 			<div class="flex flex-col md:flex-row gap-6">
 				<!-- Profile Picture -->
 				<div class="w-full md:w-1/3">
@@ -23,7 +23,7 @@ templ UserSettings(props UserSettingsProps) {
 						</div>
 						<form id="upload-pfp-form" hx-put={ fmt.Sprintf("/api/admin/settings/pfp/%v", props.UserID) } hx-encoding="multipart/form-data" hx-target="#update-pfp-admin" hx-swap="innerHTML">
 							<label for="pfp-upload" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm cursor-pointer transition-colors">
-								Promeni Profilnu Sliku
+								Промени Профилну Слику
 								<input
 									id="pfp-upload"
 									name="pfp"
@@ -41,7 +41,7 @@ templ UserSettings(props UserSettingsProps) {
 				<div class="w-full md:w-2/3">
 					<form hx-put={ fmt.Sprintf("/api/admin/settings/username/%v", props.UserID) } hx-trigger="submit" hx-target="#update-user-modal" hx-swap="innerHTML" class="space-y-4">
 						<div>
-							<label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Korisničko Ime</label>
+							<label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Корисничко Име</label>
 							<input
 								type="text"
 								id="username"
@@ -51,7 +51,7 @@ templ UserSettings(props UserSettingsProps) {
 							/>
 						</div>
 						<button type="submit" onClick={ clearUserUpdateModal() } class="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors text-sm">
-							Sačuvaj promene
+							Сачувај Промене
 						</button>
 					</form>
 				</div>
@@ -59,12 +59,12 @@ templ UserSettings(props UserSettingsProps) {
 		</div>
 		<!-- Password Reset Section -->
 		<div class="px-5 pb-5 space-y-4">
-			<h2 class="text-xl font-semibold text-black dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Podešavanja Lozinke</h2>
+			<h2 class="text-xl font-semibold text-black dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Подешавања Лозинке</h2>
 			<div class="bg-gray-100 dark:bg-gray-800 p-4 rounded">
 				<div class="flex items-center justify-between">
 					<div>
-						<h3 class="text-md font-medium text-black dark:text-white">Promeni Lozinku</h3>
-						<p class="text-sm text-gray-600 dark:text-gray-400">Pošalji link za promenu lozinke</p>
+						<h3 class="text-md font-medium text-black dark:text-white">Промени Лозинку</h3>
+						<p class="text-sm text-gray-600 dark:text-gray-400">Пошаљи линк за промену лозинке</p>
 					</div>
 					<button
 						hx-post="/api/send-password-reset"
@@ -73,7 +73,7 @@ templ UserSettings(props UserSettingsProps) {
 						hx-swap="innerHTML"
 						class="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors text-sm"
 					>
-						Pošalji Link
+						Пошаљи Линк
 					</button>
 				</div>
 			</div>
